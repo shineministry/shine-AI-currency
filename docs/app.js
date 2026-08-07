@@ -56,6 +56,8 @@
   let timeframe = 7;        // history chart
   let convTimeframe = 7;    // convert chart
   let favorites = new Set(JSON.parse(localStorage.getItem("shinefx-favs") || "[]"));
+  let alerts = JSON.parse(localStorage.getItem("shinefx-alerts") || "[]");
+  let comparePairs = JSON.parse(localStorage.getItem("shinefx-compare") || "[]");
 
   const $ = (id) => document.getElementById(id);
 
@@ -178,6 +180,278 @@
     });
   }
 
+  /* ---------- Visit Streak ---------- */
+
+  function updateStreak() {
+    const today = new Date().toISOString().slice(0, 10);
+    const last = localStorage.getItem("shinefx-last-visit");
+    const streak = parseInt(localStorage.getItem("shinefx-streak") || "0", 10);
+    let newStreak = streak;
+    if (last === today) {
+      newStreak = streak || 1;
+    } else if (last) {
+      const diff = (new Date(today) - new Date(last)) / 86400000;
+      newStreak = diff <= 1 ? streak + 1 : 1;
+    } else {
+      newStreak = 1;
+    }
+    localStorage.setItem("shinefx-last-visit", today);
+    localStorage.setItem("shinefx-streak", String(newStreak));
+    const el = $("footStreak");
+    if (el && newStreak > 1) el.textContent = "\uD83D\uDD25 " + newStreak + " day streak";
+  }
+
+  /* ---------- Base Currency Selector ---------- */
+
+  function buildBaseSelect() {
+    if (!state.latest) return;
+    const allCodes = [state.latest.base].concat(state.latest.currencies || Object.keys(state.latest.rates).sort());
+    const sel = $("baseSelect");
+    sel.innerHTML = allCodes.map((c) =>
+      "<option value='" + c + "'" + (c === state.base ? " selected" : "") + ">" + c + "</option>"
+    ).join("");
+  }
+
+  function onBaseChange() {
+    const newBase = $("baseSelect").value;
+    if (newBase === state.base) return;
+    state.base = newBase;
+    localStorage.setItem("shinefx-base", newBase);
+    buildSelects();
+    doConvert();
+    renderStats();
+    renderRates();
+    renderHistChart();
+    buildTicker();
+    buildWatchlist();
+    renderCompare();
+  }
+
+  function ratesForBase(base) {
+    if (!state.latest || !state.latest.rates) return {};
+    const eurRates = state.latest.rates;
+    if (base === "EUR") return Object.assign({}, eurRates, { EUR: 1.0 });
+    const baseEur = eurRates[base];
+    if (!baseEur) return {};
+    const result = { EUR: 1.0 / baseEur };
+    for (const [code, rate] of Object.entries(eurRates)) {
+      if (code !== base) result[code] = rate / baseEur;
+    }
+    return result;
+  }
+
+  /* ---------- Share ---------- */
+
+  function shareRate() {
+    const from = $("fromCur").value;
+    const to = $("toCur").value;
+    const amount = $("amount").value;
+    const url = location.origin + location.pathname + "#pair=" + from + "-" + to + "&amt=" + amount;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = $("shareBtn");
+        btn.classList.add("copied");
+        setTimeout(() => btn.classList.remove("copied"), 1500);
+      });
+    } else {
+      prompt("Copy this link:", url);
+    }
+  }
+
+  /* ---------- Price Alerts ---------- */
+
+  function renderAlerts() {
+    const list = $("alertList");
+    if (!list) return;
+    if (!alerts.length) {
+      list.innerHTML = "<div class='alert-empty'>No alerts set. Create one above to get notified when rates cross your target.</div>";
+      return;
+    }
+    list.innerHTML = alerts.map((a, i) => {
+      const curRate = state.latest && state.latest.rates ? ratesForBase(state.base)[a.pair.split("/")[1]] : null;
+      let status = "active";
+      let statusText = "watching";
+      if (curRate != null) {
+        if ((a.dir === "above" && curRate >= a.target) || (a.dir === "below" && curRate <= a.target)) {
+          status = "triggered";
+          statusText = "triggered!";
+        }
+      }
+      return "<div class='alert-item'>" +
+        "<div class='alert-info'>" +
+        "<span class='alert-pair'>" + a.pair + "</span>" +
+        "<span class='alert-dir'>" + (a.dir === "above" ? "\u25b2 above" : "\u25bc below") + "</span>" +
+        "<span class='alert-target'>" + fmt(a.target, 4) + "</span>" +
+        "</div>" +
+        "<div style='display:flex;align-items:center;gap:8px'>" +
+        "<span class='alert-status " + status + "'>" + statusText + "</span>" +
+        "<button class='alert-remove' data-i='" + i + "' title='Remove'>&times;</button>" +
+        "</div></div>";
+    }).join("");
+    list.querySelectorAll(".alert-remove").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        alerts.splice(parseInt(btn.dataset.i, 10), 1);
+        localStorage.setItem("shinefx-alerts", JSON.stringify(alerts));
+        renderAlerts();
+      });
+    });
+  }
+
+  function addAlert() {
+    const pair = $("alertPair").value;
+    const dir = $("alertDir").value;
+    const target = parseFloat($("alertTarget").value);
+    if (!pair || !isFinite(target) || target <= 0) return;
+    alerts.push({ pair: pair, dir: dir, target: target });
+    localStorage.setItem("shinefx-alerts", JSON.stringify(alerts));
+    $("alertTarget").value = "";
+    renderAlerts();
+    checkAlerts();
+  }
+
+  function checkAlerts() {
+    if (!state.latest || !alerts.length) return;
+    const eurRates = ratesForBase(state.base);
+    alerts.forEach((a) => {
+      const parts = a.pair.split("/");
+      const toCode = parts[1];
+      const rate = eurRates[toCode];
+      if (rate == null) return;
+      const triggered = (a.dir === "above" && rate >= a.target) || (a.dir === "below" && rate <= a.target);
+      if (triggered && !a._fired) {
+        a._fired = true;
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("ShineFX Alert: " + a.pair, {
+            body: "Rate is now " + fmt(rate, 4) + " (" + a.dir + " " + fmt(a.target, 4) + ")",
+          });
+        }
+      } else if (!triggered) {
+        a._fired = false;
+      }
+    });
+  }
+
+  /* ---------- Compare ---------- */
+
+  function renderCompare() {
+    const grid = $("compareGrid");
+    const picks = $("comparePicks");
+    if (!grid || !picks) return;
+
+    const allQuotes = state.latest ? (state.latest.currencies || Object.keys(state.latest.rates).sort()) : [];
+    const validPairs = comparePairs.filter((p) => {
+      const parts = p.split("/");
+      return allQuotes.includes(parts[1]);
+    });
+    comparePairs = validPairs;
+
+    if (!comparePairs.length) {
+      picks.innerHTML = "";
+      grid.innerHTML = "<div class='compare-empty'>Add currency pairs above to compare them side-by-side.</div>";
+      return;
+    }
+
+    picks.innerHTML = comparePairs.map((p, i) =>
+      "<span class='compare-pick'>" + p +
+      "<button class='compare-remove' data-i='" + i + "'>&times;</button></span>"
+    ).join("");
+    picks.querySelectorAll(".compare-remove").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        comparePairs.splice(parseInt(btn.dataset.i, 10), 1);
+        localStorage.setItem("shinefx-compare", JSON.stringify(comparePairs));
+        renderCompare();
+      });
+    });
+
+    const eurRates = ratesForBase(state.base);
+    grid.innerHTML = comparePairs.map((p) => {
+      const parts = p.split("/");
+      const toCode = parts[1];
+      const rate = eurRates[toCode];
+      const t = state.latest.trends[toCode] || {};
+      const cls = trendClass(t.trend);
+      return "<div class='compare-card'>" +
+        "<div class='cc-pair'>" + state.base + "/" + toCode + "</div>" +
+        "<div class='cc-rate " + cls + "'>" + (rate ? fmt(rate, 4) : "\u2014") + "</div>" +
+        "<div class='cc-change " + cls + "'>" + (t.change_pct != null ? (t.change_pct >= 0 ? "+" : "") + fmt(t.change_pct, 2) + "%" : "") + "</div>" +
+        "</div>";
+    }).join("");
+
+    const pts = comparePairs.map((p) => {
+      const parts = p.split("/");
+      return trendPoints(parts[0] + "/" + parts[1], 30);
+    });
+    drawCompareChart($("compareChart"), pts, comparePairs);
+  }
+
+  function drawCompareChart(canvas, seriesList, labels) {
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.clientWidth || 720;
+    const H = canvas.clientHeight || 300;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    const colors = ["#1a73e8", "#d93025", "#188038", "#f9ab00"];
+    const padL = 62, padR = 16, padT = 30, padB = 34;
+    const iw = W - padL - padR, ih = H - padT - padB;
+
+    if (!seriesList.length || !seriesList[0].length) {
+      ctx.fillStyle = cssVar("--chart-text");
+      ctx.font = "13px 'Google Sans', Segoe UI, Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Add pairs to compare", W / 2, H / 2);
+      return;
+    }
+
+    const allRates = seriesList.flat().map((p) => p[1]);
+    let min = Math.min.apply(null, allRates);
+    let max = Math.max.apply(null, allRates);
+    const span = max - min || 1;
+    min -= span * 0.08;
+    max += span * 0.08;
+
+    const maxLen = Math.max.apply(null, seriesList.map((s) => s.length));
+    const x = (i) => padL + (i / (maxLen - 1)) * iw;
+    const y = (v) => padT + ih - ((v - min) / (max - min)) * ih;
+
+    ctx.fillStyle = cssVar("--chart-text");
+    ctx.font = "13px 'Google Sans', Segoe UI, Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Compare (" + labels.join(", ") + ")", 14, 12);
+
+    ctx.strokeStyle = cssVar("--chart-grid");
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const gv = min + ((max - min) * i) / 4;
+      const gy = y(gv);
+      ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(W - padR, gy); ctx.stroke();
+      ctx.fillStyle = cssVar("--chart-text"); ctx.fillText(gv.toFixed(4), 4, gy - 6);
+    }
+
+    seriesList.forEach((points, si) => {
+      if (points.length < 2) return;
+      ctx.strokeStyle = colors[si % colors.length];
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((p, i) => { i === 0 ? ctx.moveTo(x(i), y(p[1])) : ctx.lineTo(x(i), y(p[1])); });
+      ctx.stroke();
+    });
+  }
+
+  function addComparePair() {
+    const allQuotes = state.latest ? (state.latest.currencies || Object.keys(state.latest.rates).sort()) : [];
+    const remaining = allQuotes.filter((q) => !comparePairs.includes(state.base + "/" + q));
+    if (!remaining.length || comparePairs.length >= 4) return;
+    const pick = remaining[0];
+    comparePairs.push(state.base + "/" + pick);
+    localStorage.setItem("shinefx-compare", JSON.stringify(comparePairs));
+    renderCompare();
+  }
+
   function startClock() {
     const tick = () => { $("clock").textContent = fmtClock(new Date()); };
     tick();
@@ -186,15 +460,17 @@
 
   function buildTicker() {
     const latest = state.latest;
+    if (!latest) return;
     const items = [];
-    const quotes = Object.keys(latest.rates).sort();
+    const eurRates = ratesForBase(state.base);
+    const quotes = Object.keys(eurRates).filter((q) => q !== state.base).sort();
     for (const q of quotes) {
       const t = latest.trends[q] || {};
       const cls = trendClass(t.trend);
       const arrow = trendArrow(t.trend);
       items.push(
-        "<span class='tick-item'><b>" + latest.base + "/" + q + "</b> " +
-        fmt(latest.rates[q], 6) + " <span class='" + cls + "'>" + arrow + "</span></span>"
+        "<span class='tick-item'><b>" + state.base + "/" + q + "</b> " +
+        fmt(eurRates[q], 6) + " <span class='" + cls + "'>" + arrow + "</span></span>"
       );
     }
     const half = items.join("");
@@ -202,14 +478,17 @@
   }
 
   function buildSelects() {
-    const quotes = Object.keys(state.latest.rates).sort();
-    const codes = [state.latest.base].concat(quotes);
+    const quotes = state.latest.currencies || Object.keys(state.latest.rates).sort();
+    const codes = [state.base].concat(quotes);
     const opts = codes.map((c) => "<option value='" + c + "'>" + c + " \u2014 " + label(c) + "</option>").join("");
     $("fromCur").innerHTML = opts;
     $("toCur").innerHTML = opts;
     $("toCur").value = quotes[0] || "USD";
-    $("histPair").innerHTML = quotes.map((q) => "<option value='" + q + "'>" + state.latest.base + "/" + q + "</option>").join("");
+    $("histPair").innerHTML = quotes.map((q) => "<option value='" + q + "'>" + state.base + "/" + q + "</option>").join("");
     $("histPair").value = quotes[0] || "USD";
+    if ($("alertPair")) {
+      $("alertPair").innerHTML = quotes.map((q) => "<option value='" + state.base + "/" + q + "'>" + state.base + "/" + q + "</option>").join("");
+    }
     updateFromSymbol();
   }
 
@@ -218,20 +497,26 @@
   }
 
   function convertRate(from, to) {
-    const base = state.base;
-    const r = state.latest.rates;
+    const r = ratesForBase(state.base);
     if (from === to) return 1;
-    if (from === base) return r[to];
-    if (to === base) return 1 / r[from];
+    if (from === state.base) return r[to];
+    if (to === state.base) return 1 / r[from];
     return r[to] / r[from];
   }
 
   function pairRateAt(e, from, to) {
     const base = state.base;
-    const r = e.rates || {};
+    const eurRates = e.rates || {};
+    const baseEur = eurRates[base];
+    if (!baseEur) return null;
+    const r = {};
+    r["EUR"] = 1.0 / baseEur;
+    for (const [code, rate] of Object.entries(eurRates)) {
+      if (code !== base) r[code] = rate / baseEur;
+    }
     if (from === to) return 1;
-    if (from === base) return r[to];
-    if (to === base) return r[from] ? 1 / r[from] : null;
+    if (from === base && r[to]) return r[to];
+    if (to === base && r[from]) return 1 / r[from];
     if (r[from] && r[to]) return r[to] / r[from];
     return null;
   }
@@ -300,7 +585,8 @@
 
   function renderStats() {
     const latest = state.latest;
-    const quotes = Object.keys(latest.rates);
+    const eurRates = ratesForBase(state.base);
+    const quotes = Object.keys(eurRates).filter((q) => q !== state.base);
     animateNumber($("statPairs"), quotes.length, 800, (v) => Math.round(v));
 
     const trends = Object.keys(latest.trends).filter((q) => latest.trends[q].n >= 2);
@@ -353,7 +639,8 @@
   function renderRates() {
     const latest = state.latest;
     const term = ($("search").value || "").toLowerCase();
-    let quotes = Object.keys(latest.rates);
+    const eurRates = ratesForBase(state.base);
+    let quotes = Object.keys(eurRates).filter((q) => q !== state.base);
 
     quotes.sort((a, b) => {
       const fa = favorites.has(a) ? 0 : 1;
@@ -362,9 +649,9 @@
       const tA = latest.trends[a] || {}, tB = latest.trends[b] || {};
       let cmp = 0;
       switch (sortKey) {
-        case "rate": cmp = latest.rates[a] - latest.rates[b]; break;
+        case "rate": cmp = eurRates[a] - eurRates[b]; break;
         case "trend":
-          cmp = (trendRank(tA.trend) - trendRank(tB.trend)) || (latest.rates[a] - latest.rates[b]); break;
+          cmp = (trendRank(tA.trend) - trendRank(tB.trend)) || (eurRates[a] - eurRates[b]); break;
         case "low": cmp = (tA.low || 0) - (tB.low || 0); break;
         case "high": cmp = (tA.high || 0) - (tB.high || 0); break;
         case "chg": cmp = (tA.change_pct || 0) - (tB.change_pct || 0); break;
@@ -381,7 +668,7 @@
     tbody.innerHTML = "";
     let delay = 0;
     for (const q of quotes) {
-      const rate = latest.rates[q];
+      const rate = eurRates[q];
       const t = latest.trends[q] || {};
       const fav = favorites.has(q);
       const tr = document.createElement("tr");
@@ -633,11 +920,10 @@
   }
 
   function rateFor(from, to) {
-    const base = state.base;
-    const r = state.latest.rates;
+    const r = ratesForBase(state.base);
     if (from === to) return 1;
-    if (from === base && r[to]) return r[to];
-    if (to === base && r[from]) return 1 / r[from];
+    if (from === state.base && r[to]) return r[to];
+    if (to === state.base && r[from]) return 1 / r[from];
     if (r[from] && r[to]) return r[to] / r[from];
     return null;
   }
@@ -686,8 +972,9 @@
     const latest = state.latest;
     const box = $("watchlistRows");
     if (!box) return;
-    const favList = [...favorites].filter((q) => latest.rates[q] != null);
-    const rest = Object.keys(latest.rates).filter((q) => !favorites.has(q)).sort();
+    const eurRates = ratesForBase(state.base);
+    const favList = [...favorites].filter((q) => eurRates[q] != null);
+    const rest = Object.keys(eurRates).filter((q) => q !== state.base && !favorites.has(q)).sort();
     const shown = favList.concat(rest).slice(0, 10);
     const current = $("toCur") ? $("toCur").value : null;
     box.innerHTML = shown.map((q) => {
@@ -695,7 +982,7 @@
       const cls = trendClass(t.trend);
       const chg = t.change_pct != null ? (t.change_pct >= 0 ? "+" : "") + fmt(t.change_pct, 2) + "%" : "\u2014";
       return "<div class='wl-row" + (q === current ? " active" : "") + "' data-q='" + q + "'>" +
-        "<span class='wl-pair'>" + (favorites.has(q) ? "\u2605 " : "") + latest.base + "/" + q + "</span>" +
+        "<span class='wl-pair'>" + (favorites.has(q) ? "\u2605 " : "") + state.base + "/" + q + "</span>" +
         "<span class='wl-chg " + cls + "'>" + chg + "</span></div>";
     }).join("");
   }
@@ -713,12 +1000,13 @@
     const box = $("gfSearchResults");
     const term = $("gfSearchInput").value.trim().toLowerCase();
     if (!term || !state.latest) { box.classList.remove("show"); return; }
-    const matches = Object.keys(state.latest.rates)
-      .filter((q) => q.toLowerCase().includes(term) || (NAMES[q] || "").toLowerCase().includes(term))
+    const eurRates = ratesForBase(state.base);
+    const matches = Object.keys(eurRates)
+      .filter((q) => q !== state.base && (q.toLowerCase().includes(term) || (NAMES[q] || "").toLowerCase().includes(term)))
       .slice(0, 8);
     if (!matches.length) { box.classList.remove("show"); return; }
     box.innerHTML = matches.map((q) =>
-      "<div class='gf-search-row' data-q='" + q + "'><span>" + state.latest.base + "/" + q + "</span>" +
+      "<div class='gf-search-row' data-q='" + q + "'><span>" + state.base + "/" + q + "</span>" +
       "<span class='muted'>" + (NAMES[q] || "") + "</span></div>").join("");
     box.classList.add("show");
   }
@@ -727,6 +1015,14 @@
 
   function setupEvents() {
     $("themeToggle").addEventListener("click", toggleTheme);
+    $("baseSelect").addEventListener("change", onBaseChange);
+    $("shareBtn").addEventListener("click", shareRate);
+    $("alertAdd").addEventListener("click", addAlert);
+    $("compareAdd").addEventListener("click", addComparePair);
+
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
 
     $("watchlist").addEventListener("click", (e) => {
       const row = e.target.closest(".wl-row");
@@ -845,8 +1141,9 @@
       state.latest = latest;
       state.history = history;
       state.context = context;
-      state.base = latest.base;
+      if (!localStorage.getItem("shinefx-base")) state.base = latest.base;
       $("liveBadge").textContent = "updated " + fmtDate(latest.timestamp);
+      buildBaseSelect();
       buildTicker();
       buildSelects();
       if (selFrom && selTo) { $("fromCur").value = selFrom; $("toCur").value = selTo; }
@@ -856,6 +1153,8 @@
       renderRates();
       renderHistChart();
       buildWatchlist();
+      renderAlerts();
+      renderCompare();
       lastRefresh = Date.now();
     } catch (err) {
       $("liveBadge").textContent = "refresh failed \u2014 showing last data";
@@ -922,9 +1221,10 @@
 
       $("liveBadge").textContent = "updated " + fmtDate(latest.timestamp);
       buildTicker();
-      doConvert(false);      // instant redraw: the live point moves, chart doesn't replay
+      doConvert(false);
       renderRates();
       buildWatchlist();
+      checkAlerts();
 
       if (anyChanged || cross || prevPrice !== $("priceValue").textContent) {
         flashIfChanged($("priceValue"), true);
@@ -951,13 +1251,20 @@
     setupEvents();
     startClock();
     initReveal();
+    updateStreak();
     try {
       state.latest = await loadJSON("data/latest.json");
       state.history = await loadJSON("data/history.json");
       state.context = await loadJSON("data/context.json");
-      state.base = state.latest.base;
+      const savedBase = localStorage.getItem("shinefx-base");
+      if (savedBase && savedBase !== "EUR") {
+        state.base = savedBase;
+      } else {
+        state.base = state.latest.base;
+      }
       $("liveBadge").textContent = "updated " + fmtDate(state.latest.timestamp);
       $("footLink").innerHTML = "next update hourly \u00b7 source " + state.latest.source;
+      buildBaseSelect();
       buildTicker();
       buildSelects();
       doConvert();
@@ -965,6 +1272,8 @@
       renderRates();
       renderHistChart();
       buildWatchlist();
+      renderAlerts();
+      renderCompare();
       attachChartHover($("chart"), $("tooltip"));
       attachChartHover($("histChart"), $("histTooltip"));
       lastRefresh = Date.now();

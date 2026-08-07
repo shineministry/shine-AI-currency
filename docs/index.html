@@ -26,6 +26,10 @@
         <div class="gf-search-results" id="gfSearchResults"></div>
       </div>
       <div class="header-right">
+        <div class="base-select-wrap">
+          <label for="baseSelect" class="sr-only">Base currency</label>
+          <select id="baseSelect" class="base-select" title="Select base currency"></select>
+        </div>
         <div class="utc"><span class="live-dot"></span><span id="clock">--:--:--</span></div>
         <div class="live-badge" id="liveBadge">loading&hellip;</div>
         <button id="themeToggle" class="theme-toggle" title="Toggle light / dark mode" aria-label="Toggle light or dark mode">
@@ -38,6 +42,8 @@
       <button class="tab active" data-tab="convert">Convert</button>
       <button class="tab" data-tab="rates">Live Rates</button>
       <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="compare">Compare</button>
+      <button class="tab" data-tab="alerts">Alerts</button>
       <button class="tab" data-tab="ask">Ask ShineFX</button>
     </nav>
   </div>
@@ -85,6 +91,9 @@
             <label for="toCur">To</label>
             <select id="toCur"></select>
           </div>
+          <button id="shareBtn" class="q-share" title="Share this rate" aria-label="Share this rate">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
         </div>
 
         <div class="quote-chart">
@@ -170,6 +179,48 @@
       </div>
     </section>
 
+    <section id="tab-compare" class="panel">
+      <div class="card reveal">
+        <h2>Compare Currencies</h2>
+        <p class="hint">Select up to 4 currency pairs to compare side-by-side.</p>
+        <div class="compare-controls">
+          <div class="compare-picks" id="comparePicks"></div>
+          <button id="compareAdd" class="compare-add" title="Add a pair">+ Add Pair</button>
+        </div>
+        <div class="compare-grid" id="compareGrid"></div>
+        <div class="chart-box">
+          <canvas id="compareChart" class="chart-canvas"></canvas>
+          <div id="compareTooltip" class="tooltip"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-alerts" class="panel">
+      <div class="card reveal">
+        <h2>Price Alerts</h2>
+        <p class="hint">Get notified when a rate crosses your target. Alerts run in your browser.</p>
+        <div class="alert-form">
+          <div class="q-field">
+            <label for="alertPair">Pair</label>
+            <select id="alertPair"></select>
+          </div>
+          <div class="q-field">
+            <label for="alertDir">Direction</label>
+            <select id="alertDir">
+              <option value="above">Goes above</option>
+              <option value="below">Goes below</option>
+            </select>
+          </div>
+          <div class="q-field q-amount">
+            <label for="alertTarget">Target rate</label>
+            <input id="alertTarget" type="number" step="any" placeholder="e.g. 1.2000">
+          </div>
+          <button id="alertAdd" class="ask-btn">Set Alert</button>
+        </div>
+        <div id="alertList" class="alert-list"></div>
+      </div>
+    </section>
+
     <section id="tab-ask" class="panel">
       <div class="card reveal">
         <h2>Ask ShineFX</h2>
@@ -179,7 +230,7 @@
           <button class="qchip" data-q="how many dollars for 100 euros?">100 EUR &#8594; USD?</button>
           <button class="qchip" data-q="what is the rupee trend?">INR trend?</button>
           <button class="qchip" data-q="convert 500 USD to INR">500 USD &#8594; INR</button>
-          <button class="qchip" data-q="euro dollar rate this week">EUR/USD this week</button>
+          <button class="qchip" data-q="what is the best performing currency today?">Top mover?</button>
         </div>
         <div class="ask-row">
           <input id="askInput" type="text" placeholder="e.g. how many dollars for 100 euros?" autocomplete="off">
@@ -193,6 +244,7 @@
 
   <footer>
     <span>ShineFX &middot; data collected hourly from public sources</span>
+    <span class="foot-streak" id="footStreak"></span>
     <span class="foot-link" id="footLink"></span>
   </footer>
 

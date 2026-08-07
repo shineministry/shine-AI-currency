@@ -179,6 +179,7 @@ def build() -> None:
         "base": BASE,
         "timestamp": ts,
         "source": source,
+        "currencies": sorted(quotes),
         "rates": {q: rates[q] for q in quotes},
         "trends": trends,
         "updated_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts)),
