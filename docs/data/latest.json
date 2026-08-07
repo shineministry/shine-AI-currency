@@ -1,7 +1,38 @@
 {
  "base": "EUR",
- "timestamp": 1786077255,
+ "timestamp": 1786078524,
  "source": "ecb",
+ "currencies": [
+  "AUD",
+  "BRL",
+  "CAD",
+  "CHF",
+  "CNY",
+  "CZK",
+  "DKK",
+  "GBP",
+  "HKD",
+  "HUF",
+  "IDR",
+  "ILS",
+  "INR",
+  "ISK",
+  "JPY",
+  "KRW",
+  "MXN",
+  "MYR",
+  "NOK",
+  "NZD",
+  "PHP",
+  "PLN",
+  "RON",
+  "SEK",
+  "SGD",
+  "THB",
+  "TRY",
+  "USD",
+  "ZAR"
+ ],
  "rates": {
   "AUD": 1.639,
   "BRL": 5.9138,
@@ -1195,5 +1226,5 @@
    ]
   }
  },
- "updated_iso": "2026-08-07T04:34:15Z"
+ "updated_iso": "2026-08-07T04:55:24Z"
 }
