@@ -201,30 +201,13 @@
     if (el && newStreak > 1) el.textContent = "\uD83D\uDD25 " + newStreak + " day streak";
   }
 
-  /* ---------- Base Currency Selector ---------- */
+  /* ---------- Currency Codes ---------- */
 
-  function buildBaseSelect() {
-    if (!state.latest) return;
-    const allCodes = [state.latest.base].concat(state.latest.currencies || Object.keys(state.latest.rates).sort());
-    const sel = $("baseSelect");
-    sel.innerHTML = allCodes.map((c) =>
-      "<option value='" + c + "'" + (c === state.base ? " selected" : "") + ">" + c + "</option>"
-    ).join("");
-  }
-
-  function onBaseChange() {
-    const newBase = $("baseSelect").value;
-    if (newBase === state.base) return;
-    state.base = newBase;
-    localStorage.setItem("shinefx-base", newBase);
-    buildSelects();
-    doConvert();
-    renderStats();
-    renderRates();
-    renderHistChart();
-    buildTicker();
-    buildWatchlist();
-    renderCompare();
+  function getAllCurrencyCodes() {
+    if (!state.latest) return ["EUR", "USD", "GBP", "INR", "JPY"];
+    const quotes = state.latest.currencies || Object.keys(state.latest.rates).sort();
+    const all = ["EUR"].concat(quotes.filter((c) => c !== "EUR"));
+    return all;
   }
 
   function ratesForBase(base) {
@@ -478,16 +461,16 @@
   }
 
   function buildSelects() {
-    const quotes = state.latest.currencies || Object.keys(state.latest.rates).sort();
-    const codes = [state.base].concat(quotes);
-    const opts = codes.map((c) => "<option value='" + c + "'>" + c + " \u2014 " + label(c) + "</option>").join("");
+    const allCodes = getAllCurrencyCodes();
+    const opts = allCodes.map((c) => "<option value='" + c + "'>" + c + " \u2014 " + label(c) + "</option>").join("");
     $("fromCur").innerHTML = opts;
     $("toCur").innerHTML = opts;
-    $("toCur").value = quotes[0] || "USD";
-    $("histPair").innerHTML = quotes.map((q) => "<option value='" + q + "'>" + state.base + "/" + q + "</option>").join("");
-    $("histPair").value = quotes[0] || "USD";
+    $("fromCur").value = "EUR";
+    $("toCur").value = allCodes.find((c) => c !== "EUR") || "USD";
+    $("histPair").innerHTML = allCodes.filter((c) => c !== "EUR").map((q) => "<option value='" + q + "'>EUR/" + q + "</option>").join("");
+    $("histPair").value = allCodes.find((c) => c !== "EUR") || "USD";
     if ($("alertPair")) {
-      $("alertPair").innerHTML = quotes.map((q) => "<option value='" + state.base + "/" + q + "'>" + state.base + "/" + q + "</option>").join("");
+      $("alertPair").innerHTML = allCodes.filter((c) => c !== "EUR").map((q) => "<option value='EUR/" + q + "'>EUR/" + q + "</option>").join("");
     }
     updateFromSymbol();
   }
@@ -1088,7 +1071,6 @@
 
   function setupEvents() {
     $("themeToggle").addEventListener("click", toggleTheme);
-    $("baseSelect").addEventListener("change", onBaseChange);
     $("shareBtn").addEventListener("click", shareRate);
     $("alertAdd").addEventListener("click", addAlert);
     $("compareAdd").addEventListener("click", addComparePair);
@@ -1217,9 +1199,7 @@
       state.history = history;
       state.context = context;
       state.gfHistory = gfHistory;
-      if (!localStorage.getItem("shinefx-base")) state.base = latest.base;
       $("liveBadge").textContent = "updated " + fmtDate(latest.timestamp);
-      buildBaseSelect();
       buildTicker();
       buildSelects();
       if (selFrom && selTo) { $("fromCur").value = selFrom; $("toCur").value = selTo; }
@@ -1333,15 +1313,9 @@
       state.history = await loadJSON("data/history.json");
       state.context = await loadJSON("data/context.json");
       try { state.gfHistory = await loadJSON("data/gf_history.json"); } catch (_) { state.gfHistory = null; }
-      const savedBase = localStorage.getItem("shinefx-base");
-      if (savedBase && savedBase !== "EUR") {
-        state.base = savedBase;
-      } else {
-        state.base = state.latest.base;
-      }
+      state.base = "EUR";
       $("liveBadge").textContent = "updated " + fmtDate(state.latest.timestamp);
       $("footLink").innerHTML = "next update hourly \u00b7 source " + state.latest.source;
-      buildBaseSelect();
       buildTicker();
       buildSelects();
       doConvert();
