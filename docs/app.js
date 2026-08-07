@@ -579,19 +579,23 @@
     const points = [];
     const seen = new Set();
 
-    // Collect ECB daily events
-    for (let i = events.length - 1; i >= 0; i--) {
-      const e = events[i];
-      if (e.ts < cutoff) break;
-      if (e.ts > toTs) continue;
-      if (seen.has(e.ts)) continue;
-      seen.add(e.ts);
-      const v = pairRateAt(e, from, to);
-      if (v != null) points.push([e.ts, v]);
+    // For 1D: skip daily ECB events entirely — only show intraday GF data
+    if (days > 1) {
+      // Collect ECB daily events
+      for (let i = events.length - 1; i >= 0; i--) {
+        const e = events[i];
+        if (e.ts < cutoff) break;
+        if (e.ts > toTs) continue;
+        if (seen.has(e.ts)) continue;
+        seen.add(e.ts);
+        const v = pairRateAt(e, from, to);
+        if (v != null) points.push([e.ts, v]);
+      }
+      points.reverse();
     }
-    points.reverse();
 
     // Merge Google Finance data for higher resolution (daily + intraday)
+    // Only merge intraday for 1D; for 1W+ use daily only to avoid visual artifacts
     if (state.gfHistory && days <= 30) {
       // Try both directions: "FROM-EUR" and "TO-EUR"
       const gfKey = to === "EUR" ? from + "-EUR" : (from === "EUR" ? to + "-EUR" : null);
@@ -606,19 +610,25 @@
       }
 
       if (gf) {
-        // Merge daily GF points
+        // Merge daily GF points (skip for 1D — intraday only)
         var gfPoints = [];
-        for (var d = 0; d < (gf.daily || []).length; d++) {
-          var dp = gf.daily[d];
-          if (dp.ts < cutoff || dp.ts > toTs) continue;
-          var rate = invert ? 1.0 / dp.price : dp.price;
-          gfPoints.push([dp.ts, rate]);
+        if (days > 1) {
+          for (var d = 0; d < (gf.daily || []).length; d++) {
+            var dp = gf.daily[d];
+            if (dp.ts < cutoff || dp.ts > toTs) continue;
+            var rate = invert ? 1.0 / dp.price : dp.price;
+            gfPoints.push([dp.ts, rate]);
+          }
         }
-        // Merge intraday GF points (today only)
-        for (var j = 0; j < (gf.intraday || []).length; j++) {
-          var ip = gf.intraday[j];
-          var iRate = invert ? 1.0 / ip.price : ip.price;
-          gfPoints.push([ip.ts, iRate]);
+        // Merge intraday GF points (1D only — skip for 1W+ to avoid visual artifacts)
+        if (days <= 1) {
+          var todayStart = Math.floor(Date.now() / 86400000) * 86400;
+          for (var j = 0; j < (gf.intraday || []).length; j++) {
+            var ip = gf.intraday[j];
+            if (ip.ts < todayStart) continue;
+            var iRate = invert ? 1.0 / ip.price : ip.price;
+            gfPoints.push([ip.ts, iRate]);
+          }
         }
 
         // Merge: prefer GF data (higher resolution) over ECB for same timestamps
@@ -646,6 +656,18 @@
           points.length = 0;
           for (var m = 0; m < merged.length; m++) points.push(merged[m]);
         }
+      }
+    }
+
+    // Fallback for 1D: if no intraday data, show last 2 daily ECB points
+    if (days <= 1 && points.length < 2) {
+      const allEvents = (state.history && state.history.events) || [];
+      for (let i = allEvents.length - 1; i >= 0 && points.length < 2; i--) {
+        const e = allEvents[i];
+        if (seen.has(e.ts)) continue;
+        seen.add(e.ts);
+        const v = pairRateAt(e, from, to);
+        if (v != null) points.unshift([e.ts, v]);
       }
     }
 
