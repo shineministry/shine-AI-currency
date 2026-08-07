@@ -10,6 +10,7 @@ from .config import settings
 
 ECB_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
 ECB_HIST_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"
+ECB_FULL_HIST_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.xml"
 GOOGLE_FINANCE_URL = "https://www.google.com/finance/quote/{pair}"
 
 USER_AGENT = (
@@ -36,6 +37,24 @@ def fetch_ecb(timeout: float = 30.0) -> dict:
 def fetch_ecb_history(timeout: float = 60.0) -> list[dict]:
     """Daily ECB reference rates over the last ~90 days."""
     resp = httpx.get(ECB_HIST_URL, headers=_headers(), timeout=timeout, follow_redirects=True)
+    resp.raise_for_status()
+    root = ElementTree.fromstring(resp.content)
+    ns = {"e": "http://www.ecb.int/vocabulary/2002-08-01/eurofxref"}
+    events = []
+    for cube in root.findall(".//e:Cube[@time]", ns):
+        ts = calendar.timegm(time.strptime(cube.get("time"), "%Y-%m-%d"))
+        rates = {}
+        for child in cube:
+            if child.get("currency"):
+                rates[child.get("currency")] = float(child.get("rate"))
+        events.append({"ts": ts, "rates": rates})
+    events.sort(key=lambda e: e["ts"])
+    return events
+
+
+def fetch_ecb_full_history(timeout: float = 180.0) -> list[dict]:
+    """Full daily ECB reference rates from 1999 to present."""
+    resp = httpx.get(ECB_FULL_HIST_URL, headers=_headers(), timeout=timeout, follow_redirects=True)
     resp.raise_for_status()
     root = ElementTree.fromstring(resp.content)
     ns = {"e": "http://www.ecb.int/vocabulary/2002-08-01/eurofxref"}

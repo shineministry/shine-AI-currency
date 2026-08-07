@@ -1,6 +1,7 @@
 import json
 import sys
 import time
+import calendar
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,6 +10,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from shinefx.config import settings
 from shinefx.fetcher import fetch_ecb_history, fetch_google_history, fetch_google_quote, fetch_live, to_observations
 from shinefx.vectors import hashing_embedding
+
+import httpx
 
 GOOGLE_PAIRS = [
     "USD-EUR", "GBP-EUR", "INR-EUR", "JPY-EUR",
@@ -123,6 +126,64 @@ def _merge_by_day(*event_lists: list[dict]) -> list[dict]:
     return [by_day[k] for k in sorted(by_day)]
 
 
+def _fetch_ecb_longterm():
+    """Fetch long-term ECB history via SDW API (2015-present, all currencies)."""
+    url = (
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A"
+        "?startPeriod=2015-01-01&endPeriod=2026-12-31&format=jsondata"
+    )
+    resp = httpx.get(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+                     timeout=120, follow_redirects=True)
+    resp.raise_for_status()
+    data = resp.json()
+
+    structure = data["structure"]
+    dims = structure["dimensions"]
+
+    # Get currency codes
+    currency_codes = []
+    for d in dims.get("series", []):
+        if d["id"] == "CURRENCY":
+            currency_codes = [v["id"] for v in d["values"]]
+            break
+
+    # Get time periods
+    time_values = []
+    for d in dims.get("observation", []):
+        if d["id"] == "TIME_PERIOD":
+            time_values = [v["id"] for v in d["values"]]
+            break
+
+    # Extract observations into events
+    series_data = data["dataSets"][0]["series"]
+    by_date = {}
+    for series_key, series_obj in series_data.items():
+        parts = series_key.split(":")
+        currency_idx = int(parts[1])
+        if currency_idx >= len(currency_codes):
+            continue
+        currency_code = currency_codes[currency_idx]
+        obs = series_obj.get("observations", {})
+        for idx_str, vals in obs.items():
+            idx = int(idx_str)
+            if idx >= len(time_values):
+                continue
+            date_str = time_values[idx]
+            rate = vals[0]
+            if rate is None:
+                continue
+            if date_str not in by_date:
+                ts = calendar.timegm(time.strptime(date_str, "%Y-%m-%d"))
+                by_date[date_str] = {"ts": ts, "rates": {}}
+            by_date[date_str]["rates"][currency_code] = float(rate)
+
+    all_events = [by_date[k] for k in sorted(by_date)]
+    (DATA_DIR / "ecb_history.json").write_text(
+        json.dumps({"events": all_events}, indent=1), encoding="utf-8"
+    )
+    return len(all_events)
+
+
 def build() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -149,6 +210,13 @@ def build() -> None:
         historical = []
     events = _merge_by_day(existing, historical, [live_event])
     events = _trim(events)
+
+    # Fetch full ECB history from SDW API (2015-present, all currencies, ~3K daily events)
+    try:
+        _fetch_ecb_longterm()
+        print(f"  Full ECB history saved to ecb_history.json")
+    except Exception as exc:
+        print(f"  Full ECB history fetch failed: {exc}")
 
     quotes = sorted({q for e in events for q in e.get("rates", {}) if q != BASE})
 

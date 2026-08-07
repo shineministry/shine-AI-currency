@@ -50,11 +50,13 @@
 
   const THEME_KEY = "shinefx-theme";
 
-  let state = { latest: null, history: null, context: null, base: "EUR" };
+  let state = { latest: null, history: null, context: null, base: "EUR", ecbFull: null };
   let lastRefresh = 0;
   let sortKey = "pair", sortDir = "asc";
   let timeframe = 7;        // history chart
   let convTimeframe = 7;    // convert chart
+  let customFrom = null;    // custom date range (epoch seconds)
+  let customTo = null;
   let favorites = new Set(JSON.parse(localStorage.getItem("shinefx-favs") || "[]"));
   let alerts = JSON.parse(localStorage.getItem("shinefx-alerts") || "[]");
   let comparePairs = JSON.parse(localStorage.getItem("shinefx-compare") || "[]");
@@ -134,6 +136,14 @@
 
   function fmtDate(ts) {
     return new Date(ts * 1000).toLocaleString();
+  }
+
+  function fmtChartDate(ts, timeframeDays) {
+    const d = new Date(ts * 1000);
+    if (timeframeDays <= 1) return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    if (timeframeDays <= 30) return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (timeframeDays <= 365) return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+    return d.toLocaleDateString(undefined, { year: "numeric" });
   }
 
   function fmtClock(d) {
@@ -538,9 +548,23 @@
     return null;
   }
 
-  function trendPoints(pair, days) {
-    const events = state.history.events || [];
-    const cutoff = Date.now() / 1000 - days * 86400;
+  function trendPoints(pair, days, customRange) {
+    // For long timeframes, use full ECB history; for short, use the compact 90-day events
+    let events;
+    if (days > 90 && state.ecbFull && state.ecbFull.events) {
+      events = state.ecbFull.events;
+    } else {
+      events = (state.history && state.history.events) || [];
+    }
+    let cutoff;
+    let toTs;
+    if (customRange && customRange.from && customRange.to) {
+      cutoff = customRange.from;
+      toTs = customRange.to;
+    } else {
+      cutoff = Date.now() / 1000 - days * 86400;
+      toTs = Date.now() / 1000;
+    }
     const parts = pair.split("/");
     const from = parts[0], to = parts[1];
     const points = [];
@@ -550,6 +574,7 @@
     for (let i = events.length - 1; i >= 0; i--) {
       const e = events[i];
       if (e.ts < cutoff) break;
+      if (e.ts > toTs) continue;
       if (seen.has(e.ts)) continue;
       seen.add(e.ts);
       const v = pairRateAt(e, from, to);
@@ -576,7 +601,7 @@
         var gfPoints = [];
         for (var d = 0; d < (gf.daily || []).length; d++) {
           var dp = gf.daily[d];
-          if (dp.ts < cutoff) continue;
+          if (dp.ts < cutoff || dp.ts > toTs) continue;
           var rate = invert ? 1.0 / dp.price : dp.price;
           gfPoints.push([dp.ts, rate]);
         }
@@ -645,11 +670,15 @@
     $("priceUnit").textContent = "1 " + from + " = " + fmt(rate, 6) + " " + to +
       "  \u00b7  " + (cross ? "live cross-check" : state.latest.source);
 
-    const pts = trendPoints(from + "/" + to, convTimeframe);
+    const range = customFrom && customTo ? { from: customFrom, to: customTo } : null;
+    const pts = trendPoints(from + "/" + to, convTimeframe, range);
     if (pts.length >= 2) {
       const first = pts[0][1], last = pts[pts.length - 1][1];
       const pct = ((last - first) / first) * 100;
-      $("priceChange").textContent = (pct >= 0 ? "+" : "") + fmt(pct, 2) + "% (" + convTimeframe + "d)";
+      const label = range
+        ? new Date(range.from * 1000).toLocaleDateString() + " – " + new Date(range.to * 1000).toLocaleDateString()
+        : convTimeframe + "d";
+      $("priceChange").textContent = (pct >= 0 ? "+" : "") + fmt(pct, 2) + "% (" + label + ")";
       $("priceChange").className = "price-change " + (pct >= 0 ? "up" : "down");
     } else {
       $("priceChange").textContent = "";
@@ -847,18 +876,26 @@
   function renderConvertChart(animate) {
     const from = $("fromCur").value, to = $("toCur").value;
     const pair = from + "/" + to;
-    drawChart($("chart"), trendPoints(pair, convTimeframe), pair, animate !== false);
+    const range = customFrom && customTo ? { from: customFrom, to: customTo } : null;
+    drawChart($("chart"), trendPoints(pair, convTimeframe, range), pair, animate !== false);
   }
 
   function renderHistChart() {
     const quote = $("histPair").value;
     const pair = state.base + "/" + quote;
-    const points = trendPoints(pair, timeframe);
+    const range = customFrom && customTo ? { from: customFrom, to: customTo } : null;
+    const points = trendPoints(pair, timeframe, range);
     const hasGF = state.gfHistory && (
       (state.base === "EUR" && state.gfHistory[quote + "-EUR"]) ||
       (quote === "EUR" && state.gfHistory[state.base + "-EUR"])
     );
-    $("histHint").textContent = pair + " over " + timeframe + " days" +
+    let rangeLabel;
+    if (range) {
+      rangeLabel = new Date(range.from * 1000).toLocaleDateString() + " – " + new Date(range.to * 1000).toLocaleDateString();
+    } else {
+      rangeLabel = timeframe + " days";
+    }
+    $("histHint").textContent = pair + " over " + rangeLabel +
       (hasGF ? " (Google Finance enhanced)" : "");
     drawChart($("histChart"), points, pair);
     if (points.length) {
@@ -936,9 +973,9 @@
       }
       ctx.fillStyle = textColor;
       ctx.font = "11px 'Google Sans', Segoe UI, Arial";
-      ctx.fillText(new Date(points[0][0] * 1000).toLocaleDateString(), padL, H - 20);
+      ctx.fillText(fmtChartDate(points[0][0], timeframe), padL, H - 20);
       ctx.textAlign = "right";
-      ctx.fillText(new Date(points[points.length - 1][0] * 1000).toLocaleDateString(), W - padR, H - 20);
+      ctx.fillText(fmtChartDate(points[points.length - 1][0], timeframe), W - padR, H - 20);
       ctx.textAlign = "left";
 
       const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
@@ -1016,7 +1053,7 @@
       ctx.lineTo(px, canvas.clientHeight);
       ctx.stroke();
       ctx.restore();
-      tip.innerHTML = "<b>" + new Date(c.points[i][0] * 1000).toLocaleString() + "</b><br>" + fmt(c.points[i][1], 6);
+      tip.innerHTML = "<b>" + fmtChartDate(c.points[i][0], timeframe) + "</b><br>" + fmt(c.points[i][1], 6);
       tip.style.left = Math.min(px * scale + 14, rect.width - 150) + "px";
       tip.style.top = Math.max(py * scale - 40, 0) + "px";
       tip.classList.add("show");
@@ -1426,9 +1463,27 @@
       btn.addEventListener("click", () => {
         document.querySelectorAll(".qf-tab").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
-        convTimeframe = parseInt(btn.dataset.days, 10);
+        if (btn.dataset.days === "custom") {
+          $("convCustomDateRange").style.display = $("convCustomDateRange").style.display === "none" ? "flex" : "none";
+        } else {
+          $("convCustomDateRange").style.display = "none";
+          convTimeframe = parseInt(btn.dataset.days, 10);
+          customFrom = null;
+          customTo = null;
+        }
         doConvert();
       });
+    });
+
+    $("convCustomDateApply").addEventListener("click", () => {
+      const fromVal = $("convCustomDateFrom").value;
+      const toVal = $("convCustomDateTo").value;
+      if (fromVal && toVal) {
+        customFrom = Math.floor(new Date(fromVal).getTime() / 1000);
+        customTo = Math.floor(new Date(toVal + "T23:59:59").getTime() / 1000);
+        convTimeframe = Math.max(1, Math.ceil((customTo - customFrom) / 86400));
+        doConvert();
+      }
     });
 
     $("histPair").addEventListener("change", renderHistChart);
@@ -1436,9 +1491,27 @@
       btn.addEventListener("click", () => {
         document.querySelectorAll(".tf").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
-        timeframe = parseInt(btn.dataset.days, 10);
+        if (btn.dataset.days === "custom") {
+          $("customDateRange").style.display = $("customDateRange").style.display === "none" ? "flex" : "none";
+        } else {
+          $("customDateRange").style.display = "none";
+          timeframe = parseInt(btn.dataset.days, 10);
+          customFrom = null;
+          customTo = null;
+        }
         renderHistChart();
       });
+    });
+
+    $("customDateApply").addEventListener("click", () => {
+      const fromVal = $("customDateFrom").value;
+      const toVal = $("customDateTo").value;
+      if (fromVal && toVal) {
+        customFrom = Math.floor(new Date(fromVal).getTime() / 1000);
+        customTo = Math.floor(new Date(toVal + "T23:59:59").getTime() / 1000);
+        timeframe = Math.max(1, Math.ceil((customTo - customFrom) / 86400));
+        renderHistChart();
+      }
     });
 
     $("search").addEventListener("input", renderRates);
@@ -1495,7 +1568,9 @@
       const history = await loadJSON("data/history.json");
       const context = await loadJSON("data/context.json");
       let gfHistory = null;
+      let ecbFull = null;
       try { gfHistory = await loadJSON("data/gf_history.json"); } catch (_) {}
+      try { ecbFull = await loadJSON("data/ecb_history.json"); } catch (_) {}
       const selFrom = $("fromCur").value;
       const selTo = $("toCur").value;
       const selHist = $("histPair").value;
@@ -1503,6 +1578,7 @@
       state.history = history;
       state.context = context;
       state.gfHistory = gfHistory;
+      state.ecbFull = ecbFull;
       $("liveBadge").textContent = "updated " + fmtDate(latest.timestamp);
       buildTicker();
       buildSelects();
@@ -1617,6 +1693,7 @@
       state.history = await loadJSON("data/history.json");
       state.context = await loadJSON("data/context.json");
       try { state.gfHistory = await loadJSON("data/gf_history.json"); } catch (_) { state.gfHistory = null; }
+      try { state.ecbFull = await loadJSON("data/ecb_history.json"); } catch (_) { state.ecbFull = null; }
       state.base = "EUR";
       $("liveBadge").textContent = "updated " + fmtDate(state.latest.timestamp);
       $("footLink").innerHTML = "next update hourly \u00b7 source " + state.latest.source;
