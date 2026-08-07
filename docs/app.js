@@ -686,6 +686,27 @@
     requestAnimationFrame(frame);
   }
 
+  function crossTrend(from, to) {
+    const events = (state.history && state.history.events) || [];
+    const series = [];
+    for (let i = 0; i < events.length; i++) {
+      const e = events[i];
+      const r = rateFor(from, to, e);
+      if (r != null) series.push(r);
+    }
+    if (series.length < 2) return { trend: "flat", low: null, high: null, change_pct: null, spark: [] };
+    const first = series[0], last = series[series.length - 1];
+    const pct = (last - first) / first * 100;
+    const trend = pct > 0.01 ? "rising" : pct < -0.01 ? "falling" : "flat";
+    return {
+      trend: trend,
+      low: Math.min.apply(null, series),
+      high: Math.max.apply(null, series),
+      change_pct: pct,
+      spark: series.slice(-30),
+    };
+  }
+
   function renderRates() {
     const latest = state.latest;
     const term = ($("search").value || "").toLowerCase();
@@ -758,15 +779,21 @@
       const rate = rateFor(from, to);
       if (rate == null) continue;
       crossShown.add(crossKey);
+      const ct = crossTrend(from, to);
       const tr = document.createElement("tr");
       tr.classList.add("cross-row");
       tr.innerHTML =
         "<td class='quote'><span class='star off' data-from='" + from + "' data-to='" + to + "' title='convert'>&#8644;</span> " +
         from + "/" + to + " <small>" + (NAMES[from] || from) + " \u2192 " + (NAMES[to] || to) + "</small></td>" +
         "<td>" + fmt(rate, 6) + "</td>" +
-        "<td><span class='trend-badge flat'>\u2014 cross</span></td>" +
-        "<td>\u2014</td><td>\u2014</td><td>\u2014</td>" +
-        "<td></td>";
+        "<td><span class='trend-badge " + trendClass(ct.trend) + "'>" + trendArrow(ct.trend) + " " + (ct.trend || "\u2014") + "</span></td>" +
+        "<td>" + (ct.low ? fmt(ct.low, 6) : "\u2014") + "</td>" +
+        "<td>" + (ct.high ? fmt(ct.high, 6) : "\u2014") + "</td>" +
+        "<td class='" + trendClass(ct.trend) + "'>" + (ct.change_pct != null ? fmt(ct.change_pct, 3) + "%" : "\u2014") + "</td>" +
+        "<td><canvas class='spark' width='84' height='26'></canvas></td>";
+      const canvas = tr.querySelector("canvas");
+      drawSparkAnimated(canvas, ct.spark || [rate], sparkColor(ct.trend), delay);
+      delay += 60;
       tbody.appendChild(tr);
     }
     if (!quotes.length) {
@@ -1006,9 +1033,16 @@
     return match ? parseFloat(match[1]) : null;
   }
 
-  function rateFor(from, to) {
-    const r = ratesForBase(state.base);
+  function rateFor(from, to, event) {
     if (from === to) return 1;
+    if (event) {
+      const eurRates = event.rates || {};
+      if (from === "EUR" && eurRates[to]) return eurRates[to];
+      if (to === "EUR" && eurRates[from]) return 1 / eurRates[from];
+      if (eurRates[from] && eurRates[to]) return eurRates[to] / eurRates[from];
+      return null;
+    }
+    const r = ratesForBase(state.base);
     if (from === state.base && r[to]) return r[to];
     if (to === state.base && r[from]) return 1 / r[from];
     if (r[from] && r[to]) return r[to] / r[from];
