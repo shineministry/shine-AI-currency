@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShineFX — Currency Intelligence</title>
+  <meta name="description" content="ShineFX tracks live exchange rates, converts any currency, and answers currency questions with its own RAG engine.">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#202124" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231a73e8'/><text x='50' y='68' font-size='52' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>S</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <header>
+      <div class="brand">
+        <div class="logo">S</div>
+        <div>
+          <h1>ShineFX</h1>
+          <p class="tagline">Your own AI currency tracker</p>
+        </div>
+      </div>
+      <div class="gf-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="gfSearchInput" type="text" placeholder="Search for a currency pair &hellip;" autocomplete="off">
+        <div class="gf-search-results" id="gfSearchResults"></div>
+      </div>
+      <div class="header-right">
+        <div class="utc"><span class="live-dot"></span><span id="clock">--:--:--</span></div>
+        <div class="live-badge" id="liveBadge">loading&hellip;</div>
+        <button id="themeToggle" class="theme-toggle" title="Toggle light / dark mode" aria-label="Toggle light or dark mode">
+          <svg class="icon icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </header>
+    <nav>
+      <button class="tab active" data-tab="convert">Convert</button>
+      <button class="tab" data-tab="rates">Live Rates</button>
+      <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="ask">Ask ShineFX</button>
+    </nav>
+  </div>
+
+  <div class="ticker-wrap" aria-hidden="true">
+    <div class="ticker" id="ticker"></div>
+  </div>
+
+  <main>
+    <section id="tab-convert" class="panel active">
+      <div class="finance-layout">
+        <aside class="watchlist" id="watchlist">
+          <h3>Lists</h3>
+          <div id="watchlistRows"></div>
+        </aside>
+      <div class="quote-card reveal">
+        <div class="quote-top">
+          <div>
+            <h2 class="pair-name" id="pairName">EUR/USD</h2>
+            <p class="pair-sub" id="pairSub">Euro to US Dollar</p>
+          </div>
+          <div class="quote-price">
+            <div class="price-value" id="priceValue">&mdash;</div>
+            <div class="price-meta">
+              <span class="price-unit" id="priceUnit"></span>
+              <span class="price-change" id="priceChange"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="quote-controls">
+          <div class="q-field q-amount">
+            <label for="amount">Amount</label>
+            <div class="q-input-wrap">
+              <span class="q-symbol" id="fromSymbol">&euro;</span>
+              <input id="amount" type="number" value="100" min="0" step="any">
+            </div>
+          </div>
+          <div class="q-field">
+            <label for="fromCur">From</label>
+            <select id="fromCur"></select>
+          </div>
+          <button id="swap" class="q-swap" title="Swap currencies" aria-label="Swap currencies">&harr;</button>
+          <div class="q-field">
+            <label for="toCur">To</label>
+            <select id="toCur"></select>
+          </div>
+        </div>
+
+        <div class="quote-chart">
+          <div class="qf-tabs">
+            <button class="qf-tab active" data-days="7">1W</button>
+            <button class="qf-tab" data-days="30">1M</button>
+            <button class="qf-tab" data-days="90">3M</button>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart" class="chart-canvas"></canvas>
+            <div id="tooltip" class="tooltip"></div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <section id="tab-rates" class="panel">
+      <div class="stats reveal">
+        <div class="stat">
+          <div class="stat-label">Pairs tracked</div>
+          <div class="stat-value" id="statPairs">0</div>
+        </div>
+        <div class="stat up-card">
+          <div class="stat-label">Top gainer</div>
+          <div class="stat-value" id="statGainer">&mdash;</div>
+        </div>
+        <div class="stat down-card">
+          <div class="stat-label">Top loser</div>
+          <div class="stat-value" id="statLoser">&mdash;</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Last update</div>
+          <div class="stat-value small" id="statUpdated">&mdash;</div>
+        </div>
+      </div>
+
+      <div class="table-toolbar reveal">
+        <input id="search" type="search" placeholder="Search currency &hellip;" autocomplete="off">
+        <span class="fav-hint" id="favHint">&#9733; = favorites</span>
+      </div>
+
+      <div class="table-wrap reveal">
+        <table id="ratesTable">
+          <thead>
+            <tr>
+              <th class="sortable" data-key="pair">Pair</th>
+              <th class="sortable" data-key="rate">Rate</th>
+              <th class="sortable" data-key="trend">Trend</th>
+              <th class="sortable" data-key="low">Low</th>
+              <th class="sortable" data-key="high">High</th>
+              <th class="sortable" data-key="chg">Change</th>
+              <th>30d</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-history" class="panel">
+      <div class="card reveal">
+        <div class="hist-head">
+          <div>
+            <h2>Rate History</h2>
+            <p class="hint" id="histHint">Select a pair</p>
+          </div>
+          <div class="timeframe">
+            <button class="tf active" data-days="7">1W</button>
+            <button class="tf" data-days="30">1M</button>
+            <button class="tf" data-days="90">3M</button>
+          </div>
+        </div>
+        <div class="pair-row">
+          <label for="histPair">Pair</label>
+          <select id="histPair"></select>
+        </div>
+        <div class="chart-box">
+          <canvas id="histChart" class="chart-canvas"></canvas>
+          <div id="histTooltip" class="tooltip"></div>
+        </div>
+        <div id="histStats" class="result"></div>
+      </div>
+    </section>
+
+    <section id="tab-ask" class="panel">
+      <div class="card reveal">
+        <h2>Ask ShineFX</h2>
+        <p class="hint">ShineFX retrieves the most relevant tracked reports from its knowledge base
+          and answers. Runs entirely in your browser.</p>
+        <div class="chips">
+          <button class="qchip" data-q="how many dollars for 100 euros?">100 EUR &#8594; USD?</button>
+          <button class="qchip" data-q="what is the rupee trend?">INR trend?</button>
+          <button class="qchip" data-q="convert 500 USD to INR">500 USD &#8594; INR</button>
+          <button class="qchip" data-q="euro dollar rate this week">EUR/USD this week</button>
+        </div>
+        <div class="ask-row">
+          <input id="askInput" type="text" placeholder="e.g. how many dollars for 100 euros?" autocomplete="off">
+          <button id="askBtn" class="ask-btn">Ask</button>
+        </div>
+        <div id="askAnswer" class="answer"></div>
+        <div id="askSources"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>ShineFX &middot; data collected hourly from public sources</span>
+    <span class="foot-link" id="footLink"></span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
