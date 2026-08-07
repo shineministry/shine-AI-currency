@@ -692,6 +692,15 @@
     const eurRates = ratesForBase(state.base);
     let quotes = Object.keys(eurRates).filter((q) => q !== state.base);
 
+    // Popular cross-rate pairs (non-EUR based)
+    const CROSS_PAIRS = [
+      ["USD", "INR"], ["USD", "GBP"], ["USD", "JPY"], ["USD", "CAD"],
+      ["GBP", "INR"], ["GBP", "JPY"], ["AUD", "USD"], ["AUD", "INR"],
+      ["CAD", "INR"], ["CHF", "INR"], ["SGD", "INR"], ["HKD", "INR"],
+      ["NZD", "USD"], ["USD", "CHF"], ["USD", "SGD"], ["USD", "HKD"],
+      ["EUR", "USD"], ["EUR", "GBP"], ["EUR", "INR"], ["EUR", "JPY"],
+    ];
+
     quotes.sort((a, b) => {
       const fa = favorites.has(a) ? 0 : 1;
       const fb = favorites.has(b) ? 0 : 1;
@@ -717,6 +726,8 @@
     const tbody = document.querySelector("#ratesTable tbody");
     tbody.innerHTML = "";
     let delay = 0;
+
+    // Render EUR-based pairs
     for (const q of quotes) {
       const rate = eurRates[q];
       const t = latest.trends[q] || {};
@@ -735,6 +746,27 @@
       const canvas = tr.querySelector("canvas");
       drawSparkAnimated(canvas, t.spark || [rate], sparkColor(t.trend), delay);
       delay += 60;
+      tbody.appendChild(tr);
+    }
+
+    // Render cross-rate pairs
+    const crossShown = new Set();
+    for (const [from, to] of CROSS_PAIRS) {
+      const crossKey = from + "/" + to;
+      if (crossShown.has(crossKey)) continue;
+      if (term && !crossKey.toLowerCase().includes(term) && !(NAMES[from] || "").toLowerCase().includes(term) && !(NAMES[to] || "").toLowerCase().includes(term)) continue;
+      const rate = rateFor(from, to);
+      if (rate == null) continue;
+      crossShown.add(crossKey);
+      const tr = document.createElement("tr");
+      tr.classList.add("cross-row");
+      tr.innerHTML =
+        "<td class='quote'><span class='star off' data-from='" + from + "' data-to='" + to + "' title='convert'>&#8644;</span> " +
+        from + "/" + to + " <small>" + (NAMES[from] || from) + " \u2192 " + (NAMES[to] || to) + "</small></td>" +
+        "<td>" + fmt(rate, 6) + "</td>" +
+        "<td><span class='trend-badge flat'>\u2014 cross</span></td>" +
+        "<td>\u2014</td><td>\u2014</td><td>\u2014</td>" +
+        "<td></td>";
       tbody.appendChild(tr);
     }
     if (!quotes.length) {
@@ -992,11 +1024,13 @@
   }
 
   function deterministicAnswer(query, hits) {
+    const q = query.toLowerCase();
     const codes = orderedCodes(query);
     let rate = null, base = null, quote = null;
     if (codes.length >= 2) { base = codes[0]; quote = codes[1]; rate = rateFor(base, quote); }
     else if (codes.length === 1) { base = state.base; quote = codes[0]; rate = rateFor(base, quote); }
 
+    // 1. Conversion / rate queries
     if (rate != null) {
       const amount = parseAmount(query);
       if (amount != null) {
@@ -1004,10 +1038,79 @@
       }
       return "Latest recorded rate: 1 " + base + " = " + fmt(rate, 6) + " " + quote + ".";
     }
+
+    // 2. Trend / strongest / weakest queries
+    if (/strongest|best|top|highest|gainer|rising|performing/i.test(q)) {
+      const allCodes = getAllCurrencyCodes().filter((c) => c !== "EUR");
+      const sorted = allCodes.map((c) => ({ code: c, t: (state.latest.trends[c] || {}) })).sort((a, b) => (b.t.change_pct || 0) - (a.t.change_pct || 0));
+      const top3 = sorted.slice(0, 3).map((s) => s.code + " (" + (s.t.change_pct >= 0 ? "+" : "") + fmt(s.t.change_pct, 2) + "%)");
+      return "Strongest currencies vs EUR today: " + top3.join(", ") + ".";
+    }
+    if (/weakest|worst|lowest|loser|falling|worst.performing/i.test(q)) {
+      const allCodes = getAllCurrencyCodes().filter((c) => c !== "EUR");
+      const sorted = allCodes.map((c) => ({ code: c, t: (state.latest.trends[c] || {}) })).sort((a, b) => (a.t.change_pct || 0) - (b.t.change_pct || 0));
+      const bot3 = sorted.slice(0, 3).map((s) => s.code + " (" + (s.t.change_pct >= 0 ? "+" : "") + fmt(s.t.change_pct, 2) + "%)");
+      return "Weakest currencies vs EUR today: " + bot3.join(", ") + ".";
+    }
+
+    // 3. General finance knowledge base
+    const financeKB = [
+      { keywords: ["interest rate", "rate hike", "rate cut", "central bank", "fed rate", "ecb rate", "monetary policy"],
+        answer: "Central banks set benchmark interest rates to control inflation and stimulate growth. The US Federal Reserve, European Central Bank (ECB), Bank of England, and Reserve Bank of India are key rate-setters. Higher rates attract foreign capital and strengthen a currency; lower rates weaken it." },
+      { keywords: ["inflation", "cpi", "consumer price", "price index"],
+        answer: "Inflation measures the rise in prices over time. CPI (Consumer Price Index) is the most common gauge. Moderate inflation (2-3%) is healthy; high inflation erodes purchasing power and often leads central banks to raise rates. Deflation (falling prices) can signal economic slowdown." },
+      { keywords: ["recession", "gdp", "economic growth", "contraction", "expansion"],
+        answer: "A recession is typically defined as two consecutive quarters of negative GDP growth. GDP (Gross Domestic Product) measures total economic output. Factors include consumer spending, investment, government policy, and global trade conditions." },
+      { keywords: ["stock", "equity", "share", "market", "s&p", "nasdaq", "dow", "nifty", "sensex"],
+        answer: "Stock markets represent ownership shares in companies. Major indices: S&P 500, NASDAQ, Dow Jones (US); Nifty 50, Sensex (India); FTSE (UK); Nikkei (Japan). Markets are influenced by earnings, interest rates, geopolitics, and investor sentiment." },
+      { keywords: ["bond", "treasury", "yield", "fixed income", "government bond"],
+        answer: "Bonds are debt instruments where you lend money to governments or corporations. Bond yields move inversely to prices. US Treasury bonds are considered safe-haven assets. Rising yields typically signal higher interest rates ahead." },
+      { keywords: ["gold", "silver", "precious metal", "commodity", "oil", "crude"],
+        answer: "Gold is a traditional safe-haven asset, often rising during uncertainty. Commodities like oil, silver, and copper are priced in USD and influenced by supply/demand, geopolitics, and dollar strength. Gold typically moves inversely to the USD." },
+      { keywords: ["forex", "foreign exchange", "currency market", "fx", "exchange rate"],
+        answer: "Forex is the global market for trading currencies, with $7.5 trillion daily volume. Major pairs: EUR/USD, USD/JPY, GBP/USD. Rates are influenced by interest rates, economic data, trade balances, and geopolitical events. ShineFX tracks ECB reference rates updated hourly." },
+      { keywords: ["crypto", "bitcoin", "ethereum", "digital currency", "blockchain"],
+        answer: "Cryptocurrencies are digital assets using blockchain technology. Bitcoin (BTC) and Ethereum (ETH) are the largest by market cap. They're highly volatile, influenced by regulation, adoption, macro trends, and sentiment. Not tracked by ShineFX but correlated with risk appetite." },
+      { keywords: ["trade balance", "trade deficit", "trade surplus", "import", "export"],
+        answer: "Trade balance = exports minus imports. A trade deficit (imports > exports) can weaken a currency over time; a surplus strengthens it. Major trade imbalances exist between US-China, India's oil imports, and EU exports." },
+      { keywords: ["gdp per capita", "standard of living", "ppp", "purchasing power"],
+        answer: "GDP per capita divides total economic output by population. PPP (Purchasing Power Parity) adjusts for cost of living differences. Countries like Luxembourg, Singapore, and Ireland have very high GDP per capita." },
+      { keywords: ["dollar index", "dxy", "usd index", "dollar strength"],
+        answer: "The US Dollar Index (DXY) measures USD against a basket of 6 currencies (EUR 57.6%, JPY 13.6%, GBP 11.9%, etc.). A strong DXY means USD is appreciating against most major currencies." },
+      { keywords: ["carry trade", "carry", "yield", "interest rate differential"],
+        answer: "A carry trade borrows in a low-interest-rate currency (e.g., JPY) to invest in a high-yield currency (e.g., AUD, INR). Profit comes from the interest rate differential. Risk: sudden currency moves can erase gains." },
+      { keywords: ["quantitative easing", "qe", "money printing", "stimulus", "fiscal policy"],
+        answer: "QE is when central banks buy bonds to inject money into the economy, lowering long-term rates. Fiscal policy involves government spending and taxation. Both can weaken a currency by increasing money supply." },
+      { keywords: ["safe haven", "flight to safety", "risk off", "risk on"],
+        answer: "Safe-haven currencies (USD, CHF, JPY) appreciate during risk-off periods (crises, uncertainty). Risk-on currencies (AUD, NZD, emerging markets) perform better during optimism and growth." },
+      { keywords: ["volatility", "vix", "fear index", "market risk"],
+        answer: "Volatility measures price fluctuations. The VIX ('fear index') tracks expected S&P 500 volatility. High volatility = uncertainty. Currency volatility increases during geopolitical events, central bank decisions, or economic data releases." },
+      { keywords: ["emerging market", "emerging", "brics", "developing economy"],
+        answer: "Emerging markets (India, Brazil, China, etc.) offer higher growth potential but with more risk. Their currencies tend to be more volatile and sensitive to global risk sentiment, US rates, and commodity prices." },
+      { keywords: ["hedge", "hedging", "risk management", "diversification"],
+        answer: "Hedging reduces financial risk through offsetting positions. Currency hedging protects against exchange rate moves. Diversification spreads investments across assets to reduce overall risk." },
+    ];
+
+    for (const entry of financeKB) {
+      if (entry.keywords.some((kw) => q.includes(kw))) {
+        return entry.answer;
+      }
+    }
+
+    // 4. Trend info from context
+    if (/trend|trending|moving|direction/i.test(q)) {
+      const allCodes = getAllCurrencyCodes().filter((c) => c !== "EUR");
+      const trending = allCodes.map((c) => ({ code: c, t: (state.latest.trends[c] || {}) })).sort((a, b) => Math.abs(b.t.change_pct || 0) - Math.abs(a.t.change_pct || 0));
+      const top = trending.slice(0, 5).map((s) => "EUR/" + s.code + " " + (s.t.trend || "flat") + " (" + (s.t.change_pct >= 0 ? "+" : "") + fmt(s.t.change_pct, 2) + "%)");
+      return "Top trending pairs: " + top.join(", ") + ".";
+    }
+
+    // 5. Default: show tracked reports
     const lines = hits.map((h) =>
       "\u2022 " + h.doc.meta.base + "/" + h.doc.meta.quote + ": 1 " + h.doc.meta.base + " = " + fmt(h.doc.meta.latest_rate) +
       " (" + (h.doc.meta.trend || "flat") + ")");
-    return "I retrieved these tracked reports for your question:\n" + (lines.join("\n") || "No data yet \u2014 check back after a few hourly updates.");
+    return "I retrieved these tracked reports for your question:\n" + (lines.join("\n") || "No data yet \u2014 check back after a few hourly updates.") +
+      "\n\nShineFX also answers questions about interest rates, inflation, GDP, stocks, bonds, gold, forex markets, crypto, trade balances, and more. Just ask!";
   }
 
   function ask() {
@@ -1057,14 +1160,134 @@
     const term = $("gfSearchInput").value.trim().toLowerCase();
     if (!term || !state.latest) { box.classList.remove("show"); return; }
     const eurRates = ratesForBase(state.base);
-    const matches = Object.keys(eurRates)
-      .filter((q) => q !== state.base && (q.toLowerCase().includes(term) || (NAMES[q] || "").toLowerCase().includes(term)))
-      .slice(0, 8);
-    if (!matches.length) { box.classList.remove("show"); return; }
-    box.innerHTML = matches.map((q) =>
-      "<div class='gf-search-row' data-q='" + q + "'><span>" + state.base + "/" + q + "</span>" +
-      "<span class='muted'>" + (NAMES[q] || "") + "</span></div>").join("");
+    const allCodes = getAllCurrencyCodes();
+
+    // AI-powered search: understand natural language queries
+    const results = [];
+
+    // 1. Direct code/name matches
+    const directMatches = allCodes
+      .filter((c) => c !== state.base && (c.toLowerCase().includes(term) || (NAMES[c] || "").toLowerCase().includes(term)))
+      .slice(0, 4)
+      .map((c) => ({ type: "pair", q: c, label: state.base + "/" + c, sub: NAMES[c] || c }));
+
+    // 2. Parse "X to Y" or "X/Y" pair queries
+    const pairMatch = term.match(/(\w+)\s*(?:to|\/|vs|versus)\s*(\w+)/);
+    if (pairMatch) {
+      const fromCode = findCurrencyCode(pairMatch[1]);
+      const toCode = findCurrencyCode(pairMatch[2]);
+      if (fromCode && toCode && fromCode !== toCode) {
+        const rate = rateFor(fromCode, toCode);
+        const amount = parseAmount(term);
+        const displayRate = rate != null ? fmt(rate, 6) : "N/A";
+        const amtResult = (amount != null && rate != null) ? " = " + fmt(amount * rate, 2) + " " + toCode : "";
+        results.push({ type: "convert", from: fromCode, to: toCode, label: amount + " " + fromCode + " \u2192 " + toCode, sub: "1 " + fromCode + " = " + displayRate + " " + toCode + amtResult });
+      }
+    }
+
+    // 3. "Strongest" / "weakest" / "top" / "best" / "worst" currency queries
+    if (/strongest|best|top|highest|gainer|rising/i.test(term)) {
+      const sorted = allCodes.filter((c) => c !== "EUR").map((c) => {
+        const t = state.latest.trends[c] || {};
+        return { code: c, pct: t.change_pct || 0, trend: t.trend };
+      }).sort((a, b) => b.pct - a.pct);
+      const top = sorted.slice(0, 3);
+      top.forEach((item) => {
+        results.push({ type: "pair", q: item.code, label: "EUR/" + item.code, sub: (NAMES[item.code] || item.code) + " \u2014 " + (item.pct >= 0 ? "+" : "") + fmt(item.pct, 2) + "% (" + item.trend + ")" });
+      });
+    }
+    if (/weakest|worst|lowest|loser|falling/i.test(term)) {
+      const sorted = allCodes.filter((c) => c !== "EUR").map((c) => {
+        const t = state.latest.trends[c] || {};
+        return { code: c, pct: t.change_pct || 0, trend: t.trend };
+      }).sort((a, b) => a.pct - b.pct);
+      const bottom = sorted.slice(0, 3);
+      bottom.forEach((item) => {
+        results.push({ type: "pair", q: item.code, label: "EUR/" + item.code, sub: (NAMES[item.code] || item.code) + " \u2014 " + (item.pct >= 0 ? "+" : "") + fmt(item.pct, 2) + "% (" + item.trend + ")" });
+      });
+    }
+
+    // 4. "Convert" / amount queries
+    const amtMatch = term.match(/(\d+[\d,.]*)\s*([a-z]{3})\s*(?:to|\/)\s*([a-z]{3})/i);
+    if (amtMatch) {
+      const amount = parseFloat(amtMatch[1].replace(/,/g, ""));
+      const fromCode = findCurrencyCode(amtMatch[2]);
+      const toCode = findCurrencyCode(amtMatch[3]);
+      if (fromCode && toCode && fromCode !== toCode && !isNaN(amount)) {
+        const rate = rateFor(fromCode, toCode);
+        if (rate != null) {
+          results.unshift({ type: "convert", from: fromCode, to: toCode, label: fmt(amount, 0) + " " + fromCode + " \u2192 " + toCode, sub: "= " + fmt(amount * rate, 2) + " " + toCode + " (1 " + fromCode + " = " + fmt(rate, 6) + " " + toCode + ")" });
+        }
+      }
+    }
+
+    // 5. "Trend" queries
+    if (/trend|trending|moving|direction/i.test(term)) {
+      const trending = allCodes.filter((c) => c !== "EUR").map((c) => {
+        const t = state.latest.trends[c] || {};
+        return { code: c, pct: t.change_pct || 0, trend: t.trend || "flat" };
+      }).sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct));
+      trending.slice(0, 3).forEach((item) => {
+        results.push({ type: "pair", q: item.code, label: "EUR/" + item.code, sub: (NAMES[item.code] || item.code) + " \u2014 " + item.trend + ", " + (item.pct >= 0 ? "+" : "") + fmt(item.pct, 2) + "%" });
+      });
+    }
+
+    // 6. Fallback to direct matches
+    if (results.length === 0) results.push(...directMatches);
+
+    if (!results.length) { box.classList.remove("show"); return; }
+    box.innerHTML = results.slice(0, 8).map((r) =>
+      r.type === "convert"
+        ? "<div class='gf-search-row' data-from='" + r.from + "' data-to='" + r.to + "'><span>" + r.label + "</span><span class='muted'>" + r.sub + "</span></div>"
+        : "<div class='gf-search-row' data-q='" + r.q + "'><span>" + r.label + "</span><span class='muted'>" + r.sub + "</span></div>"
+    ).join("");
     box.classList.add("show");
+  }
+
+  function findCurrencyCode(name) {
+    name = name.toLowerCase().trim();
+    const aliases = {
+      dollar: "USD", usd: "USD", "us dollar": "USD", "greenback": "USD", buck: "USD",
+      euro: "EUR", eur: "EUR",
+      pound: "GBP", gbp: "GBP", sterling: "GBP", "british pound": "GBP",
+      rupee: "INR", inr: "INR", "indian rupee": "INR",
+      yen: "JPY", jpy: "JPY", "japanese yen": "JPY",
+      yuan: "CNY", cny: "CNY", renminbi: "CNY", rmb: "CNY",
+      franc: "CHF", chf: "CHF", "swiss franc": "CHF",
+      real: "BRL", brl: "BRL", "brazilian real": "BRL",
+      peso: "MXN", mxn: "MXN", "mexican peso": "MXN",
+      won: "KRW", krw: "KRW", "south korean won": "KRW",
+      rand: "ZAR", zar: "ZAR", "south african rand": "ZAR",
+      lira: "TRY", try_: "TRY", "turkish lira": "TRY",
+      ruble: "RUB", rub: "RUB",
+      baht: "THB", thb: "THB", "thai baht": "THB",
+      ringgit: "MYR", myr: "MYR",
+      krona: "SEK", sek: "SEK", nok: "NOK", dkk: "DKK",
+      zloty: "PLN", pln: "PLN",
+      forint: "HUF", huf: "HUF",
+      leu: "RON", ron: "RON",
+      kuna: "HRK",
+      dong: "VND", vnd: "VND",
+      rupiah: "IDR", idr: "IDR",
+      peso2: "PHP", php: "PHP",
+      shekel: "ILS", ils: "ILS",
+      kyat: "MMK",
+      naira: "NGA", nga: "NGA",
+      colones: "CRC",
+    };
+    if (aliases[name]) return aliases[name];
+    // Try exact code match
+    const upper = name.toUpperCase();
+    if (allCurrencyCodes().includes(upper)) return upper;
+    // Fuzzy match on names
+    for (const [key, code] of Object.entries(aliases)) {
+      if (key.includes(name) || name.includes(key)) return code;
+    }
+    return null;
+  }
+
+  function allCurrencyCodes() {
+    return getAllCurrencyCodes();
   }
 
   /* ---------- Events ---------- */
@@ -1100,7 +1323,14 @@
       document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
       document.querySelector('.tab[data-tab="convert"]').classList.add("active");
       $("tab-convert").classList.add("active");
-      selectWatchlistPair(row.dataset.q);
+      if (row.dataset.from && row.dataset.to) {
+        $("fromCur").value = row.dataset.from;
+        $("toCur").value = row.dataset.to;
+        doConvert();
+        renderConvertChart();
+      } else {
+        selectWatchlistPair(row.dataset.q);
+      }
     });
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".gf-search")) $("gfSearchResults").classList.remove("show");
@@ -1154,6 +1384,18 @@
     document.querySelector("#ratesTable tbody").addEventListener("click", (e) => {
       const star = e.target.closest(".star");
       if (!star) return;
+      // Cross-rate convert button
+      if (star.dataset.from && star.dataset.to) {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        document.querySelector('.tab[data-tab="convert"]').classList.add("active");
+        $("tab-convert").classList.add("active");
+        $("fromCur").value = star.dataset.from;
+        $("toCur").value = star.dataset.to;
+        doConvert();
+        renderConvertChart();
+        return;
+      }
       const q = star.dataset.q;
       favorites.has(q) ? favorites.delete(q) : favorites.add(q);
       localStorage.setItem("shinefx-favs", JSON.stringify([...favorites]));

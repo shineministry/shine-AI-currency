@@ -166,6 +166,7 @@ h1 { margin: 0; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; color:
 }
 .gf-search-row:hover { background: var(--bg-sunken); }
 .gf-search-row .muted { color: var(--muted); font-size: 12px; }
+.gf-search-row .muted { color: var(--muted); font-size: 12px; max-width: 300px; text-align: right; }
 
 /* ---- Convert layout: Google Finance style left "Lists" rail ---- */
 
@@ -400,13 +401,13 @@ h2 { margin: 0 0 4px; font-size: 20px; font-weight: 500; }
   font-size: 15px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--panel2);
+  background-color: var(--panel2);
   color: var(--text);
   outline: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.2s;
 }
 .q-field input:focus,
 .q-field select:focus {
@@ -624,6 +625,10 @@ tr.fav-row td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .pair-row select { width: 220px; padding: 9px 32px 9px 12px; border: 1px solid var(--border); border-radius: 8px; background-color: var(--panel2); color: var(--text); }
 .pair-row select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--focus-ring); outline: none; }
 
+.cross-row { border-top: 2px solid var(--accent-soft); }
+.cross-row td { font-style: italic; color: var(--muted); font-size: 13px; }
+.cross-row .quote { font-style: normal; color: var(--text); }
+
 .result { margin-top: 16px; color: var(--muted); font-size: 14px; }
 .result b { font-weight: 600; }
 
@@ -716,22 +721,7 @@ footer {
   .chart-canvas { height: 240px; }
 }
 
-/* ---- Base currency selector ---- */
-
-.base-select-wrap { position: relative; }
-.base-select {
-  padding: 6px 30px 6px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background-color: var(--accent-soft);
-  color: var(--accent);
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-.base-select:hover { border-color: var(--accent); background: var(--accent-soft); }
-.base-select:focus { outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
+/* ---- Screen reader only ---- */
 
 .sr-only {
   position: absolute; width: 1px; height: 1px;

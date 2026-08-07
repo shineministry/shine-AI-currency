@@ -22,7 +22,7 @@
       </div>
       <div class="gf-search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="gfSearchInput" type="text" placeholder="Search for a currency pair &hellip;" autocomplete="off">
+        <input id="gfSearchInput" type="text" placeholder="Ask anything &mdash; e.g. dollar to rupee, strongest currency, gold vs dollar" autocomplete="off">
         <div class="gf-search-results" id="gfSearchResults"></div>
       </div>
       <div class="header-right">
@@ -220,16 +220,20 @@
     <section id="tab-ask" class="panel">
       <div class="card reveal">
         <h2>Ask ShineFX</h2>
-        <p class="hint">ShineFX retrieves the most relevant tracked reports from its knowledge base
-          and answers. Runs entirely in your browser.</p>
+        <p class="hint">ShineFX answers questions about currencies, exchange rates, and general finance topics.
+          Powered by RAG over live market data. Runs entirely in your browser.</p>
         <div class="chips">
           <button class="qchip" data-q="how many dollars for 100 euros?">100 EUR &#8594; USD?</button>
           <button class="qchip" data-q="what is the rupee trend?">INR trend?</button>
           <button class="qchip" data-q="convert 500 USD to INR">500 USD &#8594; INR</button>
-          <button class="qchip" data-q="what is the best performing currency today?">Top mover?</button>
+          <button class="qchip" data-q="what is the strongest currency today?">Top gainer?</button>
+          <button class="qchip" data-q="explain interest rates and currency">Interest rates?</button>
+          <button class="qchip" data-q="how does inflation affect exchange rates?">Inflation?</button>
+          <button class="qchip" data-q="what is forex market?">What is forex?</button>
+          <button class="qchip" data-q="gold price vs dollar relationship">Gold vs USD?</button>
         </div>
         <div class="ask-row">
-          <input id="askInput" type="text" placeholder="e.g. how many dollars for 100 euros?" autocomplete="off">
+          <input id="askInput" type="text" placeholder="Ask about currencies, rates, inflation, GDP, stocks, gold, forex..." autocomplete="off">
           <button id="askBtn" class="ask-btn">Ask</button>
         </div>
         <div id="askAnswer" class="answer"></div>
