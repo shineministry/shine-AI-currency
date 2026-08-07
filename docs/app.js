@@ -141,7 +141,8 @@
   function fmtChartDate(ts, timeframeDays) {
     const d = new Date(ts * 1000);
     if (timeframeDays <= 1) return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-    if (timeframeDays <= 30) return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (timeframeDays <= 7) return d.toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    if (timeframeDays <= 90) return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
     if (timeframeDays <= 365) return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
     return d.toLocaleDateString(undefined, { year: "numeric" });
   }
@@ -435,8 +436,16 @@
     min -= span * 0.08;
     max += span * 0.08;
 
-    const maxLen = Math.max.apply(null, seriesList.map((s) => s.length));
-    const x = (i) => padL + (i / (maxLen - 1)) * iw;
+    // Find overall time range across all series
+    let allFirstTs = Infinity, allLastTs = -Infinity;
+    seriesList.forEach((s) => {
+      if (s.length) {
+        if (s[0][0] < allFirstTs) allFirstTs = s[0][0];
+        if (s[s.length - 1][0] > allLastTs) allLastTs = s[s.length - 1][0];
+      }
+    });
+    const tsRange = allLastTs - allFirstTs || 1;
+    const x = (ts) => padL + ((ts - allFirstTs) / tsRange) * iw;
     const y = (v) => padT + ih - ((v - min) / (max - min)) * ih;
 
     ctx.fillStyle = cssVar("--chart-text");
@@ -458,7 +467,7 @@
       ctx.strokeStyle = colors[si % colors.length];
       ctx.lineWidth = 2;
       ctx.beginPath();
-      points.forEach((p, i) => { i === 0 ? ctx.moveTo(x(i), y(p[1])) : ctx.lineTo(x(i), y(p[1])); });
+      points.forEach((p, i) => { i === 0 ? ctx.moveTo(x(p[0]), y(p[1])) : ctx.lineTo(x(p[0]), y(p[1])); });
       ctx.stroke();
     });
   }
@@ -877,7 +886,7 @@
     const from = $("fromCur").value, to = $("toCur").value;
     const pair = from + "/" + to;
     const range = customFrom && customTo ? { from: customFrom, to: customTo } : null;
-    drawChart($("chart"), trendPoints(pair, convTimeframe, range), pair, animate !== false);
+    drawChart($("chart"), trendPoints(pair, convTimeframe, range), pair, convTimeframe, animate !== false);
   }
 
   function renderHistChart() {
@@ -897,7 +906,7 @@
     }
     $("histHint").textContent = pair + " over " + rangeLabel +
       (hasGF ? " (Google Finance enhanced)" : "");
-    drawChart($("histChart"), points, pair);
+    drawChart($("histChart"), points, pair, timeframe);
     if (points.length) {
       const rates = points.map((p) => p[1]);
       const low = Math.min.apply(null, rates);
@@ -911,8 +920,9 @@
     }
   }
 
-  function drawChart(canvas, points, title, animate) {
+  function drawChart(canvas, points, title, tfDays, animate) {
     animate = animate !== false;
+    var chartTimeframe = tfDays || timeframe;
     const dpr = window.devicePixelRatio || 1;
     const W = canvas.clientWidth || 720;
     const H = canvas.clientHeight || 300;
@@ -948,7 +958,11 @@
     min -= span * 0.08;
     max += span * 0.08;
     const iw = W - padL - padR, ih = H - padT - padB;
-    const x = (i) => padL + (i / (points.length - 1)) * iw;
+
+    // Time-based x-axis: position points by their actual timestamp
+    const firstTs = points[0][0], lastTs = points[points.length - 1][0];
+    const tsRange = lastTs - firstTs || 1;
+    const x = (ts) => padL + ((ts - firstTs) / tsRange) * iw;
     const y = (v) => padT + ih - ((v - min) / (max - min)) * ih;
     const color = points[points.length - 1][1] >= points[0][1] ? upColor : downColor;
     const fillTop = color + "44";
@@ -971,36 +985,47 @@
         ctx.stroke();
         ctx.fillText(gv.toFixed(4), 4, gy - 6);
       }
+
+      // X-axis labels: show start and end dates
       ctx.fillStyle = textColor;
       ctx.font = "11px 'Google Sans', Segoe UI, Arial";
-      ctx.fillText(fmtChartDate(points[0][0], timeframe), padL, H - 20);
+      ctx.fillText(fmtChartDate(firstTs, chartTimeframe), padL, H - 20);
       ctx.textAlign = "right";
-      ctx.fillText(fmtChartDate(points[points.length - 1][0], timeframe), W - padR, H - 20);
+      ctx.fillText(fmtChartDate(lastTs, chartTimeframe), W - padR, H - 20);
+
+      // Add mid-point label for better readability on longer timeframes
+      if (chartTimeframe > 7) {
+        const midTs = firstTs + tsRange / 2;
+        ctx.textAlign = "center";
+        ctx.fillText(fmtChartDate(midTs, chartTimeframe), padL + iw / 2, H - 20);
+      }
       ctx.textAlign = "left";
 
       const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
       grad.addColorStop(0, fillTop);
       grad.addColorStop(1, color + "00");
+
+      // Use the first 'count' points sorted by time for animation
+      const drawPoints = points.slice(0, count);
+
       ctx.beginPath();
-      for (let i = 0; i < count; i++) ctx.lineTo(x(i), y(points[i][1]));
-      ctx.lineTo(x(count - 1), H - padB);
-      ctx.lineTo(x(0), H - padB);
+      drawPoints.forEach((p, i) => { i === 0 ? ctx.moveTo(x(p[0]), y(p[1])) : ctx.lineTo(x(p[0]), y(p[1])); });
+      ctx.lineTo(x(drawPoints[drawPoints.length - 1][0]), H - padB);
+      ctx.lineTo(x(drawPoints[0][0]), H - padB);
       ctx.closePath();
       ctx.fillStyle = grad;
       ctx.fill();
 
       ctx.beginPath();
-      for (let i = 0; i < count; i++) {
-        const px = x(i), py = y(points[i][1]);
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      }
+      drawPoints.forEach((p, i) => { i === 0 ? ctx.moveTo(x(p[0]), y(p[1])) : ctx.lineTo(x(p[0]), y(p[1])); });
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.4;
       ctx.lineCap = "round";
       ctx.stroke();
 
-      // Live endpoint dot — marks exactly where the current rate sits.
-      const lastX = x(count - 1), lastY = y(points[count - 1][1]);
+      // Live endpoint dot
+      const lastP = drawPoints[drawPoints.length - 1];
+      const lastX = x(lastP[0]), lastY = y(lastP[1]);
       ctx.beginPath();
       ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
       ctx.fillStyle = color;
@@ -1024,23 +1049,27 @@
       }
       requestAnimationFrame(frame);
     } else {
-      // Instant redraw — the live point simply moves to its new position
-      // rather than replaying the whole reveal animation on every poll.
       paint(points.length);
     }
 
-    canvas._chart = { points, x, y, padL, padR, W, H, repaint: () => paint(points.length) };
+    canvas._chart = { points, x, y, padL, padR, W, H, chartTimeframe, repaint: () => paint(points.length) };
   }
 
   function attachChartHover(canvas, tip) {
     canvas.addEventListener("mousemove", (e) => {
       const c = canvas._chart;
       if (!c || c.points.length < 2) return;
-      if (c.repaint) c.repaint();   // erase any previous hover line first
+      if (c.repaint) c.repaint();
       const rect = canvas.getBoundingClientRect();
       const relX = e.clientX - rect.left;
-      const i = Math.max(0, Math.min(c.points.length - 1, Math.round(((relX - c.padL) / (rect.width - c.padL - c.padR)) * (c.points.length - 1))));
-      const px = c.x(i), py = c.y(c.points[i][1]);
+      // Find closest point by timestamp using time-based x
+      const hoverTs = c.points[0][0] + ((relX - c.padL) / (c.W - c.padL - c.padR)) * (c.points[c.points.length - 1][0] - c.points[0][0]);
+      let bestIdx = 0, bestDist = Infinity;
+      for (let i = 0; i < c.points.length; i++) {
+        const dist = Math.abs(c.points[i][0] - hoverTs);
+        if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+      }
+      const px = c.x(c.points[bestIdx][0]), py = c.y(c.points[bestIdx][1]);
       const ctx = canvas.getContext("2d");
       const scale = rect.width / canvas.clientWidth;
       ctx.save();
@@ -1053,7 +1082,7 @@
       ctx.lineTo(px, canvas.clientHeight);
       ctx.stroke();
       ctx.restore();
-      tip.innerHTML = "<b>" + fmtChartDate(c.points[i][0], timeframe) + "</b><br>" + fmt(c.points[i][1], 6);
+      tip.innerHTML = "<b>" + fmtChartDate(c.points[bestIdx][0], c.chartTimeframe) + "</b><br>" + fmt(c.points[bestIdx][1], 6);
       tip.style.left = Math.min(px * scale + 14, rect.width - 150) + "px";
       tip.style.top = Math.max(py * scale - 40, 0) + "px";
       tip.classList.add("show");
@@ -1061,7 +1090,7 @@
     canvas.addEventListener("mouseleave", () => {
       tip.classList.remove("show");
       const c = canvas._chart;
-      if (c && c.repaint) c.repaint();   // wipe the last hover line
+      if (c && c.repaint) c.repaint();
     });
   }
 
