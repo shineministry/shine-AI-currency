@@ -21,8 +21,13 @@ GOOGLE_PAIRS = [
     "NZD-EUR",
 ]
 
-# Key pairs for Google Finance intraday chart data (top traded)
-GF_INTRA_PAIRS = ["USD-EUR", "GBP-EUR", "INR-EUR", "JPY-EUR", "CHF-EUR", "CNY-EUR"]
+# Key pairs for Google Finance daily + intraday chart data (all major currencies)
+GF_CHART_PAIRS = [
+    "USD-EUR", "GBP-EUR", "INR-EUR", "JPY-EUR", "CHF-EUR", "CNY-EUR",
+    "AUD-EUR", "CAD-EUR", "SGD-EUR", "HKD-EUR", "SEK-EUR", "NOK-EUR",
+    "TRY-EUR", "ZAR-EUR", "BRL-EUR", "MXN-EUR", "THB-EUR", "PLN-EUR",
+    "CZK-EUR", "HUF-EUR", "KRW-EUR", "ILS-EUR", "NZD-EUR", "DKK-EUR",
+]
 
 
 def _fetch_google_supplementary() -> dict:
@@ -46,7 +51,7 @@ def _fetch_google_chart_data() -> dict:
     Returns {pair: {"daily": [{ts, price}], "intraday": [{ts, price}]}}.
     """
     gf_data = {}
-    for pair in GF_INTRA_PAIRS:
+    for pair in GF_CHART_PAIRS:
         try:
             hist = fetch_google_history(pair)
             if hist["daily"] or hist["intraday"]:
@@ -221,9 +226,49 @@ def build() -> None:
         (DATA_DIR / "gf_history.json").write_text(
             json.dumps(gf_data, indent=1), encoding="utf-8"
         )
+        # Add Google Finance data to context docs for AI
+        for pair, hist in gf_data.items():
+            daily = hist.get("daily", [])
+            if len(daily) < 2:
+                continue
+            from_code, to_code = pair.split("-")
+            first_price = daily[0]["price"]
+            last_price = daily[-1]["price"]
+            # GF stores X per 1 EUR; convert to EUR/X
+            first_rate = 1.0 / first_price if first_price else 0
+            last_rate = 1.0 / last_price if last_price else 0
+            pct = ((last_rate - first_rate) / first_rate * 100) if first_rate else 0
+            trend = "rising" if pct > 0.05 else ("falling" if pct < -0.05 else "flat")
+            gf_doc = (
+                f"Google Finance data for {from_code}: 1 EUR = {last_rate:.6f} {from_code} "
+                f"(source: Google Finance). Over {len(daily)} daily observations "
+                f"the rate ranged from {min(1.0/d['price'] for d in daily if d['price']):.6f} to "
+                f"{max(1.0/d['price'] for d in daily if d['price']):.6f} {from_code}, "
+                f"trend {trend}, change {pct:+.4f}%."
+            )
+            docs.append({
+                "content": gf_doc,
+                "meta": {
+                    "base": BASE,
+                    "quote": from_code,
+                    "latest_rate": last_rate,
+                    "low": min(1.0/d["price"] for d in daily if d["price"]),
+                    "high": max(1.0/d["price"] for d in daily if d["price"]),
+                    "trend": trend,
+                    "pct_change": round(pct, 6),
+                    "timestamp": daily[-1]["ts"],
+                    "source": "google_finance",
+                },
+                "embedding": [round(v, 6) for v in hashing_embedding(gf_doc)],
+            })
         print(f"  Google Finance chart data: {len(gf_data)} pairs")
     except Exception as exc:
         print(f"  Google Finance chart fetch failed: {exc}")
+
+    # Rewrite context.json with GF docs included
+    (DATA_DIR / "context.json").write_text(
+        json.dumps({"base": BASE, "docs": docs}, indent=1), encoding="utf-8"
+    )
 
     print(f"OK: {len(quotes)} pairs, {len(events)} events, {len(docs)} context docs, ts={ts}, source={source}")
 

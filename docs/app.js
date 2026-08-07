@@ -210,6 +210,34 @@
     return all;
   }
 
+  function gfTrend(quote) {
+    if (!state.gfHistory || !state.gfHistory[quote + "-EUR"]) return null;
+    const gf = state.gfHistory[quote + "-EUR"];
+    const daily = gf.daily || [];
+    if (daily.length < 2) return null;
+    // GF prices are quote per 1 EUR; for EUR/quote = 1/price
+    const series = daily.map(function(d) { return 1.0 / d.price; });
+    const first = series[0], last = series[series.length - 1];
+    const pct = (last - first) / first * 100;
+    const trend = pct > 0.05 ? "rising" : pct < -0.05 ? "falling" : "flat";
+    return {
+      trend: trend,
+      low: Math.min.apply(null, series),
+      high: Math.max.apply(null, series),
+      change_pct: pct,
+      n: series.length,
+      spark: series.slice(-30),
+      source: "google_finance",
+    };
+  }
+
+  function enhancedTrend(quote) {
+    const ecb = (state.latest && state.latest.trends) || {};
+    const gf = gfTrend(quote);
+    if (gf) return gf;
+    return ecb[quote] || {};
+  }
+
   function ratesForBase(base) {
     if (!state.latest || !state.latest.rates) return {};
     const eurRates = state.latest.rates;
@@ -351,7 +379,7 @@
       const parts = p.split("/");
       const toCode = parts[1];
       const rate = eurRates[toCode];
-      const t = state.latest.trends[toCode] || {};
+      const t = enhancedTrend(toCode);
       const cls = trendClass(t.trend);
       return "<div class='compare-card'>" +
         "<div class='cc-pair'>" + state.base + "/" + toCode + "</div>" +
@@ -448,7 +476,7 @@
     const eurRates = ratesForBase(state.base);
     const quotes = Object.keys(eurRates).filter((q) => q !== state.base).sort();
     for (const q of quotes) {
-      const t = latest.trends[q] || {};
+      const t = enhancedTrend(q);
       const cls = trendClass(t.trend);
       const arrow = trendArrow(t.trend);
       items.push(
@@ -639,10 +667,10 @@
     const quotes = Object.keys(eurRates).filter((q) => q !== state.base);
     animateNumber($("statPairs"), quotes.length, 800, (v) => Math.round(v));
 
-    const trends = Object.keys(latest.trends).filter((q) => latest.trends[q].n >= 2);
+    const trends = quotes.filter((q) => { const t = enhancedTrend(q); return t && t.n >= 2; });
     let gainer = null, loser = null;
     for (const q of trends) {
-      const pct = latest.trends[q].change_pct;
+      const pct = enhancedTrend(q).change_pct;
       if (!gainer || pct > gainer.pct) gainer = { q, pct };
       if (!loser || pct < loser.pct) loser = { q, pct };
     }
@@ -726,7 +754,7 @@
       const fa = favorites.has(a) ? 0 : 1;
       const fb = favorites.has(b) ? 0 : 1;
       if (fa !== fb) return fa - fb;
-      const tA = latest.trends[a] || {}, tB = latest.trends[b] || {};
+      const tA = enhancedTrend(a), tB = enhancedTrend(b);
       let cmp = 0;
       switch (sortKey) {
         case "rate": cmp = eurRates[a] - eurRates[b]; break;
@@ -751,7 +779,7 @@
     // Render EUR-based pairs
     for (const q of quotes) {
       const rate = eurRates[q];
-      const t = latest.trends[q] || {};
+      const t = enhancedTrend(q);
       const fav = favorites.has(q);
       const tr = document.createElement("tr");
       if (fav) tr.classList.add("fav-row");
@@ -1076,13 +1104,13 @@
     // 2. Trend / strongest / weakest queries
     if (/strongest|best|top|highest|gainer|rising|performing/i.test(q)) {
       const allCodes = getAllCurrencyCodes().filter((c) => c !== "EUR");
-      const sorted = allCodes.map((c) => ({ code: c, t: (state.latest.trends[c] || {}) })).sort((a, b) => (b.t.change_pct || 0) - (a.t.change_pct || 0));
+      const sorted = allCodes.map((c) => ({ code: c, t: enhancedTrend(c) })).sort((a, b) => (b.t.change_pct || 0) - (a.t.change_pct || 0));
       const top3 = sorted.slice(0, 3).map((s) => s.code + " (" + (s.t.change_pct >= 0 ? "+" : "") + fmt(s.t.change_pct, 2) + "%)");
       return "Strongest currencies vs EUR today: " + top3.join(", ") + ".";
     }
     if (/weakest|worst|lowest|loser|falling|worst.performing/i.test(q)) {
       const allCodes = getAllCurrencyCodes().filter((c) => c !== "EUR");
-      const sorted = allCodes.map((c) => ({ code: c, t: (state.latest.trends[c] || {}) })).sort((a, b) => (a.t.change_pct || 0) - (b.t.change_pct || 0));
+      const sorted = allCodes.map((c) => ({ code: c, t: enhancedTrend(c) })).sort((a, b) => (a.t.change_pct || 0) - (b.t.change_pct || 0));
       const bot3 = sorted.slice(0, 3).map((s) => s.code + " (" + (s.t.change_pct >= 0 ? "+" : "") + fmt(s.t.change_pct, 2) + "%)");
       return "Weakest currencies vs EUR today: " + bot3.join(", ") + ".";
     }
@@ -1134,7 +1162,7 @@
     // 4. Trend info from context
     if (/trend|trending|moving|direction/i.test(q)) {
       const allCodes = getAllCurrencyCodes().filter((c) => c !== "EUR");
-      const trending = allCodes.map((c) => ({ code: c, t: (state.latest.trends[c] || {}) })).sort((a, b) => Math.abs(b.t.change_pct || 0) - Math.abs(a.t.change_pct || 0));
+      const trending = allCodes.map((c) => ({ code: c, t: enhancedTrend(c) })).sort((a, b) => Math.abs(b.t.change_pct || 0) - Math.abs(a.t.change_pct || 0));
       const top = trending.slice(0, 5).map((s) => "EUR/" + s.code + " " + (s.t.trend || "flat") + " (" + (s.t.change_pct >= 0 ? "+" : "") + fmt(s.t.change_pct, 2) + "%)");
       return "Top trending pairs: " + top.join(", ") + ".";
     }
@@ -1170,7 +1198,7 @@
     const shown = favList.concat(rest).slice(0, 10);
     const current = $("toCur") ? $("toCur").value : null;
     box.innerHTML = shown.map((q) => {
-      const t = latest.trends[q] || {};
+      const t = enhancedTrend(q);
       const cls = trendClass(t.trend);
       const chg = t.change_pct != null ? (t.change_pct >= 0 ? "+" : "") + fmt(t.change_pct, 2) + "%" : "\u2014";
       return "<div class='wl-row" + (q === current ? " active" : "") + "' data-q='" + q + "'>" +
@@ -1222,7 +1250,7 @@
     // 3. "Strongest" / "weakest" / "top" / "best" / "worst" currency queries
     if (/strongest|best|top|highest|gainer|rising/i.test(term)) {
       const sorted = allCodes.filter((c) => c !== "EUR").map((c) => {
-        const t = state.latest.trends[c] || {};
+        const t = enhancedTrend(c);
         return { code: c, pct: t.change_pct || 0, trend: t.trend };
       }).sort((a, b) => b.pct - a.pct);
       const top = sorted.slice(0, 3);
@@ -1232,7 +1260,7 @@
     }
     if (/weakest|worst|lowest|loser|falling/i.test(term)) {
       const sorted = allCodes.filter((c) => c !== "EUR").map((c) => {
-        const t = state.latest.trends[c] || {};
+        const t = enhancedTrend(c);
         return { code: c, pct: t.change_pct || 0, trend: t.trend };
       }).sort((a, b) => a.pct - b.pct);
       const bottom = sorted.slice(0, 3);
@@ -1258,7 +1286,7 @@
     // 5. "Trend" queries
     if (/trend|trending|moving|direction/i.test(term)) {
       const trending = allCodes.filter((c) => c !== "EUR").map((c) => {
-        const t = state.latest.trends[c] || {};
+        const t = enhancedTrend(c);
         return { code: c, pct: t.change_pct || 0, trend: t.trend || "flat" };
       }).sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct));
       trending.slice(0, 3).forEach((item) => {
