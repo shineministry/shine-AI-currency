@@ -528,6 +528,8 @@
     const from = parts[0], to = parts[1];
     const points = [];
     const seen = new Set();
+
+    // Collect ECB daily events
     for (let i = events.length - 1; i >= 0; i--) {
       const e = events[i];
       if (e.ts < cutoff) break;
@@ -537,6 +539,64 @@
       if (v != null) points.push([e.ts, v]);
     }
     points.reverse();
+
+    // Merge Google Finance data for higher resolution (daily + intraday)
+    if (state.gfHistory && days <= 30) {
+      // Try both directions: "FROM-EUR" and "TO-EUR"
+      const gfKey = to === "EUR" ? from + "-EUR" : (from === "EUR" ? to + "-EUR" : null);
+      let gf = null;
+      if (gfKey && state.gfHistory[gfKey]) {
+        gf = state.gfHistory[gfKey];
+        // GF prices are FROM/TO or TO/FROM depending on direction
+        // For "INR-EUR" key: price = INR per 1 EUR (so EUR/INR = 1/price)
+        // For "USD-EUR" key: price = USD per 1 EUR (so EUR/USD = 1/price)
+        var invert = (to === "EUR"); // need 1/price to get EUR/FROM
+      }
+
+      if (gf) {
+        // Merge daily GF points
+        var gfPoints = [];
+        for (var d = 0; d < (gf.daily || []).length; d++) {
+          var dp = gf.daily[d];
+          if (dp.ts < cutoff) continue;
+          var rate = invert ? 1.0 / dp.price : dp.price;
+          gfPoints.push([dp.ts, rate]);
+        }
+        // Merge intraday GF points (today only)
+        for (var j = 0; j < (gf.intraday || []).length; j++) {
+          var ip = gf.intraday[j];
+          var iRate = invert ? 1.0 / ip.price : ip.price;
+          gfPoints.push([ip.ts, iRate]);
+        }
+
+        // Merge: prefer GF data (higher resolution) over ECB for same timestamps
+        if (gfPoints.length > 0) {
+          var merged = [];
+          var gfIdx = 0;
+          var ecbIdx = 0;
+          while (gfIdx < gfPoints.length || ecbIdx < points.length) {
+            var gfTs = gfIdx < gfPoints.length ? gfPoints[gfIdx][0] : Infinity;
+            var ecbTs = ecbIdx < points.length ? points[ecbIdx][0] : Infinity;
+            if (gfTs < ecbTs) {
+              merged.push(gfPoints[gfIdx]);
+              // Skip ECB point within ±2 hours of this GF point
+              while (ecbIdx < points.length && Math.abs(points[ecbIdx][0] - gfTs) < 7200) ecbIdx++;
+              gfIdx++;
+            } else if (ecbTs < gfTs) {
+              merged.push(points[ecbIdx]);
+              ecbIdx++;
+            } else {
+              merged.push(gfPoints[gfIdx]); // prefer GF
+              gfIdx++;
+              ecbIdx++;
+            }
+          }
+          points.length = 0;
+          for (var m = 0; m < merged.length; m++) points.push(merged[m]);
+        }
+      }
+    }
+
     return points;
   }
 
@@ -717,7 +777,12 @@
     const quote = $("histPair").value;
     const pair = state.base + "/" + quote;
     const points = trendPoints(pair, timeframe);
-    $("histHint").textContent = pair + " over " + timeframe + " days";
+    const hasGF = state.gfHistory && (
+      (state.base === "EUR" && state.gfHistory[quote + "-EUR"]) ||
+      (quote === "EUR" && state.gfHistory[state.base + "-EUR"])
+    );
+    $("histHint").textContent = pair + " over " + timeframe + " days" +
+      (hasGF ? " (Google Finance enhanced)" : "");
     drawChart($("histChart"), points, pair);
     if (points.length) {
       const rates = points.map((p) => p[1]);
@@ -1135,12 +1200,15 @@
       const latest = await loadJSON("data/latest.json");
       const history = await loadJSON("data/history.json");
       const context = await loadJSON("data/context.json");
+      let gfHistory = null;
+      try { gfHistory = await loadJSON("data/gf_history.json"); } catch (_) {}
       const selFrom = $("fromCur").value;
       const selTo = $("toCur").value;
       const selHist = $("histPair").value;
       state.latest = latest;
       state.history = history;
       state.context = context;
+      state.gfHistory = gfHistory;
       if (!localStorage.getItem("shinefx-base")) state.base = latest.base;
       $("liveBadge").textContent = "updated " + fmtDate(latest.timestamp);
       buildBaseSelect();
@@ -1256,6 +1324,7 @@
       state.latest = await loadJSON("data/latest.json");
       state.history = await loadJSON("data/history.json");
       state.context = await loadJSON("data/context.json");
+      try { state.gfHistory = await loadJSON("data/gf_history.json"); } catch (_) { state.gfHistory = null; }
       const savedBase = localStorage.getItem("shinefx-base");
       if (savedBase && savedBase !== "EUR") {
         state.base = savedBase;

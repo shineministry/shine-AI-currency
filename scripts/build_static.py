@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from shinefx.config import settings
-from shinefx.fetcher import fetch_ecb_history, fetch_google_quote, fetch_live, to_observations
+from shinefx.fetcher import fetch_ecb_history, fetch_google_history, fetch_google_quote, fetch_live, to_observations
 from shinefx.vectors import hashing_embedding
 
 GOOGLE_PAIRS = [
@@ -20,6 +20,9 @@ GOOGLE_PAIRS = [
     "DKK-EUR", "ISK-EUR", "KRW-EUR", "ILS-EUR",
     "NZD-EUR",
 ]
+
+# Key pairs for Google Finance intraday chart data (top traded)
+GF_INTRA_PAIRS = ["USD-EUR", "GBP-EUR", "INR-EUR", "JPY-EUR", "CHF-EUR", "CNY-EUR"]
 
 
 def _fetch_google_supplementary() -> dict:
@@ -35,6 +38,22 @@ def _fetch_google_supplementary() -> dict:
         except Exception:
             continue
     return rates
+
+
+def _fetch_google_chart_data() -> dict:
+    """Fetch daily + intraday chart data from Google Finance for key pairs.
+
+    Returns {pair: {"daily": [{ts, price}], "intraday": [{ts, price}]}}.
+    """
+    gf_data = {}
+    for pair in GF_INTRA_PAIRS:
+        try:
+            hist = fetch_google_history(pair)
+            if hist["daily"] or hist["intraday"]:
+                gf_data[pair] = hist
+        except Exception:
+            continue
+    return gf_data
 
 DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
 DATA_DIR = DOCS_DIR / "data"
@@ -195,6 +214,16 @@ def build() -> None:
         json.dumps({"base": BASE, "docs": docs}, indent=1), encoding="utf-8"
     )
     (DOCS_DIR / ".nojekyll").write_text("", encoding="utf-8")
+
+    # Fetch Google Finance chart data (daily + intraday) for key pairs
+    try:
+        gf_data = _fetch_google_chart_data()
+        (DATA_DIR / "gf_history.json").write_text(
+            json.dumps(gf_data, indent=1), encoding="utf-8"
+        )
+        print(f"  Google Finance chart data: {len(gf_data)} pairs")
+    except Exception as exc:
+        print(f"  Google Finance chart fetch failed: {exc}")
 
     print(f"OK: {len(quotes)} pairs, {len(events)} events, {len(docs)} context docs, ts={ts}, source={source}")
 

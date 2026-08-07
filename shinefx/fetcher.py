@@ -66,6 +66,71 @@ def fetch_google_quote(pair: str, timeout: float = 30.0) -> float:
     return float(str(value).replace(",", ""))
 
 
+def fetch_google_history(pair: str, timeout: float = 30.0) -> dict:
+    """Scrape Google Finance for daily history (~30 days) and intraday data.
+
+    Returns {"daily": [{ts, price}], "intraday": [{ts, price}]}.
+    """
+    code = pair.upper().replace("_", "-").replace("/", "-")
+    url = GOOGLE_FINANCE_URL.format(pair=code)
+    resp = httpx.get(url, headers=_headers(), timeout=timeout, follow_redirects=True)
+    resp.raise_for_status()
+    text = resp.text
+
+    daily = []
+    intraday = []
+
+    # Extract daily history from ds:12 / ds:13 (30-day daily bars)
+    for key in ("ds:12", "ds:13"):
+        match = re.search(
+            r"AF_initDataCallback\({key: '" + key + r"'.*?data:(.*?)\}\);",
+            text, re.DOTALL,
+        )
+        if not match:
+            continue
+        data_str = match.group(1)
+        pairs = re.findall(
+            r"\[(\d{4}),(\d{1,2}),(\d{1,2}),(\d+),(\d+),null,null,\[\]\],\[([\d.]+)",
+            data_str,
+        )
+        for y, m, d, h, mi, price in pairs:
+            try:
+                ts = int(calendar.timegm((int(y), int(m), int(d), int(h), int(mi), 0, 0, 0, 0)))
+                daily.append({"ts": ts, "price": float(price)})
+            except (ValueError, OverflowError):
+                continue
+        if daily:
+            break
+
+    # Extract intraday data from ds:10 / ds:11 (today's sub-hourly bars)
+    for key in ("ds:10", "ds:11"):
+        match = re.search(
+            r"AF_initDataCallback\({key: '" + key + r"'.*?data:(.*?)\}\);",
+            text, re.DOTALL,
+        )
+        if not match:
+            continue
+        data_str = match.group(1)
+        today = time.gmtime()
+        today_date = (today.tm_year, today.tm_mon, today.tm_mday)
+        pairs = re.findall(
+            r"\[(\d{4}),(\d{1,2}),(\d{1,2}),null,(\d+),null,null,\[\]\],\[([\d.]+)",
+            data_str,
+        )
+        for y, m, d, minute_idx, price in pairs:
+            try:
+                if int(y) == today_date[0] and int(m) == today_date[1] and int(d) == today_date[2]:
+                    base_ts = int(calendar.timegm((int(y), int(m), int(d), 0, 0, 0, 0, 0, 0)))
+                    ts = base_ts + int(minute_idx) * 60
+                    intraday.append({"ts": ts, "price": float(price)})
+            except (ValueError, OverflowError):
+                continue
+        if intraday:
+            break
+
+    return {"daily": daily, "intraday": intraday}
+
+
 def _cross_rate(base: str, rates_vs_base: dict[str, float], quote: str) -> float | None:
     if quote == base:
         return 1.0
