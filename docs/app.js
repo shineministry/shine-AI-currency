@@ -507,6 +507,13 @@
   function pairRateAt(e, from, to) {
     const base = state.base;
     const eurRates = e.rates || {};
+    if (from === to) return 1;
+    if (base === "EUR") {
+      if (from === "EUR" && eurRates[to]) return eurRates[to];
+      if (to === "EUR" && eurRates[from]) return 1 / eurRates[from];
+      if (eurRates[from] && eurRates[to]) return eurRates[to] / eurRates[from];
+      return null;
+    }
     const baseEur = eurRates[base];
     if (!baseEur) return null;
     const r = {};
@@ -514,7 +521,6 @@
     for (const [code, rate] of Object.entries(eurRates)) {
       if (code !== base) r[code] = rate / baseEur;
     }
-    if (from === to) return 1;
     if (from === base && r[to]) return r[to];
     if (to === base && r[from]) return 1 / r[from];
     if (r[from] && r[to]) return r[to] / r[from];
@@ -545,12 +551,13 @@
       // Try both directions: "FROM-EUR" and "TO-EUR"
       const gfKey = to === "EUR" ? from + "-EUR" : (from === "EUR" ? to + "-EUR" : null);
       let gf = null;
+      var invert = false;
       if (gfKey && state.gfHistory[gfKey]) {
         gf = state.gfHistory[gfKey];
-        // GF prices are FROM/TO or TO/FROM depending on direction
-        // For "INR-EUR" key: price = INR per 1 EUR (so EUR/INR = 1/price)
-        // For "USD-EUR" key: price = USD per 1 EUR (so EUR/USD = 1/price)
-        var invert = (to === "EUR"); // need 1/price to get EUR/FROM
+        // GF key "X-EUR" stores price of X per 1 EUR
+        // For pair EUR/X → rate = 1/price (need to invert)
+        // For pair X/EUR → rate = price (already correct)
+        invert = (from === "EUR");
       }
 
       if (gf) {
@@ -1054,6 +1061,7 @@
 
   function selectWatchlistPair(q) {
     if (!state.latest || !state.latest.rates[q]) return;
+    $("fromCur").value = state.base;
     $("toCur").value = q;
     doConvert();
     buildWatchlist();
