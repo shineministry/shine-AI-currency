@@ -5,7 +5,7 @@ on:
     - cron: "17 * * * *"
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
       - "scripts/**"
       - "shinefx/**"
@@ -50,7 +50,7 @@ jobs:
             echo "No new data to commit"
           else
             git commit -m "Update currency data [skip ci]"
-            git push origin main
+            git push origin master
           fi
 
       - name: Deploy to GitHub Pages

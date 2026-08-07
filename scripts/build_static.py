@@ -7,8 +7,34 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from shinefx.config import settings
-from shinefx.fetcher import fetch_ecb_history, fetch_live, to_observations
+from shinefx.fetcher import fetch_ecb_history, fetch_google_quote, fetch_live, to_observations
 from shinefx.vectors import hashing_embedding
+
+GOOGLE_PAIRS = [
+    "USD-EUR", "GBP-EUR", "INR-EUR", "JPY-EUR",
+    "AUD-EUR", "CAD-EUR", "CHF-EUR", "CNY-EUR",
+    "HKD-EUR", "SGD-EUR", "SEK-EUR", "NOK-EUR",
+    "TRY-EUR", "ZAR-EUR", "BRL-EUR", "MXN-EUR",
+    "THB-EUR", "PLN-EUR", "CZK-EUR", "HUF-EUR",
+    "IDR-EUR", "PHP-EUR", "MYR-EUR", "RON-EUR",
+    "DKK-EUR", "ISK-EUR", "KRW-EUR", "ILS-EUR",
+    "NZD-EUR",
+]
+
+
+def _fetch_google_supplementary() -> dict:
+    """Fetch rates from Google Finance as a secondary source.
+    Returns a dict of {currency_code: rate_vs_EUR} for successful fetches."""
+    rates = {}
+    for pair in GOOGLE_PAIRS:
+        from_code, to_code = pair.split("-")
+        try:
+            price = fetch_google_quote(pair)
+            if price and price > 0:
+                rates[from_code] = 1.0 / price
+        except Exception:
+            continue
+    return rates
 
 DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
 DATA_DIR = DOCS_DIR / "data"
@@ -84,6 +110,12 @@ def build() -> None:
     rates = {o["quote"]: o["rate"] for o in observations}
     if BASE not in rates:
         rates[BASE] = 1.0
+
+    google_rates = _fetch_google_supplementary()
+    for code, rate in google_rates.items():
+        if code not in rates and rate:
+            rates[code] = rate
+            source = "ecb+google"
 
     existing = _load_existing()
     live_event = {"ts": ts, "source": source, "rates": rates}
