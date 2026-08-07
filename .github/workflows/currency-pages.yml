@@ -6,14 +6,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main, master]
-    paths:
-      - "scripts/**"
-      - "shinefx/**"
-      - "docs/index.html"
-      - "docs/style.css"
-      - "docs/app.js"
-      - "docs/CNAME"
-      - ".github/workflows/**"
 
 permissions:
   contents: write
@@ -52,11 +44,3 @@ jobs:
             git commit -m "Update currency data [skip ci]"
             git push origin master
           fi
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          publish_branch: gh-pages
-          force_orphan: true
