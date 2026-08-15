@@ -1,6 +1,6 @@
 {
  "base": "EUR",
- "timestamp": 1786815488,
+ "timestamp": 1786819765,
  "source": "ecb",
  "currencies": [
   "AUD",
@@ -1226,5 +1226,5 @@
    ]
   }
  },
- "updated_iso": "2026-08-15T17:38:08Z"
+ "updated_iso": "2026-08-15T18:49:25Z"
 }
