@@ -2,7 +2,7 @@
  "base": "EUR",
  "docs": [
   {
-   "content": "Currency report: 1 EUR = 1.598000 AUD as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.597100 to 1.646300 AUD, trend falling, change -1.7885%.",
+   "content": "Currency report: 1 EUR = 1.598000 AUD as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.597100 to 1.646300 AUD, trend falling, change -1.7885%.",
    "meta": {
     "base": "EUR",
     "quote": "AUD",
@@ -11,7 +11,7 @@
     "high": 1.6463,
     "trend": "falling",
     "pct_change": -1.788458,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -76,7 +76,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -203,7 +203,7 @@
     0.0,
     0.0,
     0.0,
-    0.156174,
+    0.0,
     0.156174,
     0.0,
     0.0,
@@ -215,7 +215,7 @@
     0.0,
     0.0,
     -0.156174,
-    0.156174,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -339,7 +339,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -402,7 +402,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 5.657400 BRL as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 5.581900 to 6.066600 BRL, trend falling, change -2.2648%.",
+   "content": "Currency report: 1 EUR = 5.657400 BRL as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 5.581900 to 6.066600 BRL, trend falling, change -2.2648%.",
    "meta": {
     "base": "EUR",
     "quote": "BRL",
@@ -411,7 +411,7 @@
     "high": 6.0666,
     "trend": "falling",
     "pct_change": -2.264835,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -476,7 +476,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -603,7 +603,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -615,7 +615,7 @@
     0.0,
     -0.160128,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -739,7 +739,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -802,7 +802,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 1.572500 CAD as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.572500 to 1.623000 CAD, trend falling, change -2.1103%.",
+   "content": "Currency report: 1 EUR = 1.572500 CAD as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.572500 to 1.623000 CAD, trend falling, change -2.1103%.",
    "meta": {
     "base": "EUR",
     "quote": "CAD",
@@ -811,7 +811,7 @@
     "high": 1.623,
     "trend": "falling",
     "pct_change": -2.110309,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -876,7 +876,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -1003,7 +1003,7 @@
     0.0,
     0.0,
     0.0,
-    0.156174,
+    0.0,
     0.156174,
     0.0,
     0.0,
@@ -1015,7 +1015,7 @@
     0.0,
     0.0,
     -0.156174,
-    0.156174,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -1139,7 +1139,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -1202,7 +1202,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 0.921100 CHF as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 0.921100 to 0.947800 CHF, trend falling, change -0.7863%.",
+   "content": "Currency report: 1 EUR = 0.921100 CHF as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 0.921100 to 0.947800 CHF, trend falling, change -0.7863%.",
    "meta": {
     "base": "EUR",
     "quote": "CHF",
@@ -1211,7 +1211,7 @@
     "high": 0.9478,
     "trend": "falling",
     "pct_change": -0.786299,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -1276,7 +1276,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.149071,
     0.0,
     0.0,
     0.0,
@@ -1403,7 +1403,7 @@
     0.0,
     0.0,
     0.0,
-    0.149071,
+    0.0,
     0.149071,
     0.0,
     0.0,
@@ -1415,7 +1415,7 @@
     0.0,
     0.0,
     -0.149071,
-    0.149071,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -1539,7 +1539,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.149071,
     0.0,
     0.0,
     0.0,
@@ -1602,7 +1602,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 7.478600 CNY as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 7.478600 to 7.862400 CNY, trend falling, change -2.9497%.",
+   "content": "Currency report: 1 EUR = 7.478600 CNY as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 7.478600 to 7.862400 CNY, trend falling, change -2.9497%.",
    "meta": {
     "base": "EUR",
     "quote": "CNY",
@@ -1611,7 +1611,7 @@
     "high": 7.8624,
     "trend": "falling",
     "pct_change": -2.949688,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -1676,7 +1676,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -1803,7 +1803,7 @@
     0.0,
     0.0,
     0.0,
-    0.156174,
+    0.0,
     0.156174,
     0.0,
     0.0,
@@ -1815,7 +1815,7 @@
     0.0,
     0.0,
     -0.156174,
-    0.156174,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -1939,7 +1939,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -2002,7 +2002,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 24.260000 CZK as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 24.083000 to 24.470000 CZK, trend rising, change +0.4305%.",
+   "content": "Currency report: 1 EUR = 24.260000 CZK as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 24.083000 to 24.470000 CZK, trend rising, change +0.4305%.",
    "meta": {
     "base": "EUR",
     "quote": "CZK",
@@ -2011,7 +2011,7 @@
     "high": 24.47,
     "trend": "rising",
     "pct_change": 0.430535,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -2076,7 +2076,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.144338,
     0.0,
     0.0,
     0.0,
@@ -2203,7 +2203,7 @@
     0.0,
     0.0,
     0.0,
-    0.144338,
+    0.0,
     0.144338,
     0.0,
     0.0,
@@ -2215,7 +2215,7 @@
     0.0,
     0.0,
     -0.144338,
-    0.144338,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -2339,7 +2339,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.144338,
     0.0,
     0.0,
     0.0,
@@ -2402,7 +2402,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 7.474700 DKK as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 7.473600 to 7.475900 DKK, trend falling, change -0.0067%.",
+   "content": "Currency report: 1 EUR = 7.474700 DKK as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 7.473600 to 7.475900 DKK, trend falling, change -0.0067%.",
    "meta": {
     "base": "EUR",
     "quote": "DKK",
@@ -2411,7 +2411,7 @@
     "high": 7.4759,
     "trend": "falling",
     "pct_change": -0.006689,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -2476,7 +2476,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -2603,7 +2603,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -2615,7 +2615,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -2739,7 +2739,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -2802,7 +2802,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 0.837700 GBP as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 0.837700 to 0.860550 GBP, trend falling, change -2.0509%.",
+   "content": "Currency report: 1 EUR = 0.837700 GBP as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 0.837700 to 0.860550 GBP, trend falling, change -2.0509%.",
    "meta": {
     "base": "EUR",
     "quote": "GBP",
@@ -2811,7 +2811,7 @@
     "high": 0.86055,
     "trend": "falling",
     "pct_change": -2.050886,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -2876,7 +2876,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -3003,7 +3003,7 @@
     0.0,
     0.0,
     0.0,
-    0.156174,
+    0.0,
     0.156174,
     0.0,
     0.0,
@@ -3015,7 +3015,7 @@
     0.0,
     0.0,
     -0.156174,
-    0.156174,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -3139,7 +3139,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.156174,
     0.0,
     0.0,
     0.0,
@@ -3202,7 +3202,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 8.784500 HKD as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 8.772200 to 9.172600 HKD, trend falling, change -1.6437%.",
+   "content": "Currency report: 1 EUR = 8.784500 HKD as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 8.772200 to 9.172600 HKD, trend falling, change -1.6437%.",
    "meta": {
     "base": "EUR",
     "quote": "HKD",
@@ -3211,7 +3211,7 @@
     "high": 9.1726,
     "trend": "falling",
     "pct_change": -1.643658,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -3276,7 +3276,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.174078,
     0.0,
     0.0,
     0.0,
@@ -3403,7 +3403,7 @@
     0.0,
     0.0,
     0.0,
-    0.174078,
+    0.0,
     0.174078,
     0.0,
     0.0,
@@ -3415,7 +3415,7 @@
     -0.174078,
     0.0,
     -0.174078,
-    0.174078,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -3539,7 +3539,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.174078,
     0.0,
     0.0,
     0.0,
@@ -3602,7 +3602,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 366.430000 HUF as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 359.780000 to 369.180000 HUF, trend rising, change +1.8484%.",
+   "content": "Currency report: 1 EUR = 366.430000 HUF as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 359.780000 to 369.180000 HUF, trend rising, change +1.8484%.",
    "meta": {
     "base": "EUR",
     "quote": "HUF",
@@ -3611,7 +3611,7 @@
     "high": 369.18,
     "trend": "rising",
     "pct_change": 1.848352,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -3676,7 +3676,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.154303,
     0.0,
     0.0,
     0.0,
@@ -3803,7 +3803,7 @@
     0.0,
     0.0,
     0.0,
-    0.154303,
+    0.0,
     0.154303,
     0.0,
     0.0,
@@ -3815,7 +3815,7 @@
     0.0,
     0.0,
     -0.154303,
-    0.154303,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -3939,7 +3939,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.154303,
     0.0,
     0.0,
     0.0,
@@ -4002,7 +4002,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 20253.880000 IDR as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 19974.250000 to 20788.620000 IDR, trend falling, change -1.4897%.",
+   "content": "Currency report: 1 EUR = 20253.880000 IDR as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 19974.250000 to 20788.620000 IDR, trend falling, change -1.4897%.",
    "meta": {
     "base": "EUR",
     "quote": "IDR",
@@ -4011,7 +4011,7 @@
     "high": 20788.62,
     "trend": "falling",
     "pct_change": -1.489677,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -4076,7 +4076,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.0,
     0.0,
@@ -4203,7 +4203,7 @@
     0.0,
     0.0,
     0.0,
-    0.150756,
+    0.0,
     0.150756,
     0.0,
     0.0,
@@ -4215,7 +4215,7 @@
     0.0,
     0.0,
     -0.150756,
-    0.150756,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -4339,7 +4339,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.0,
     0.0,
@@ -4402,7 +4402,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 3.482400 ILS as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 3.411800 to 3.530100 ILS, trend rising, change +0.6707%.",
+   "content": "Currency report: 1 EUR = 3.482400 ILS as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 3.411800 to 3.530100 ILS, trend rising, change +0.6707%.",
    "meta": {
     "base": "EUR",
     "quote": "ILS",
@@ -4411,7 +4411,7 @@
     "high": 3.5301,
     "trend": "rising",
     "pct_change": 0.670675,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -4476,7 +4476,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -4603,7 +4603,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     -0.160128,
     0.0,
@@ -4615,7 +4615,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -4739,7 +4739,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -4802,7 +4802,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 106.249000 INR as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 106.126500 to 111.959500 INR, trend falling, change -2.7402%.",
+   "content": "Currency report: 1 EUR = 106.249000 INR as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 106.126500 to 111.959500 INR, trend falling, change -2.7402%.",
    "meta": {
     "base": "EUR",
     "quote": "INR",
@@ -4811,7 +4811,7 @@
     "high": 111.9595,
     "trend": "falling",
     "pct_change": -2.740234,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -4876,7 +4876,7 @@
     0.150756,
     0.0,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.0,
     0.0,
@@ -5003,7 +5003,7 @@
     0.0,
     0.0,
     0.0,
-    0.150756,
+    0.0,
     0.150756,
     0.0,
     0.0,
@@ -5015,7 +5015,7 @@
     0.0,
     0.0,
     -0.150756,
-    0.150756,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -5139,7 +5139,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.0,
     0.0,
@@ -5202,7 +5202,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 136.200000 ISK as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 136.200000 to 142.800000 ISK, trend falling, change -4.6218%.",
+   "content": "Currency report: 1 EUR = 136.200000 ISK as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 136.200000 to 142.800000 ISK, trend falling, change -4.6218%.",
    "meta": {
     "base": "EUR",
     "quote": "ISK",
@@ -5211,7 +5211,7 @@
     "high": 142.8,
     "trend": "falling",
     "pct_change": -4.621849,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -5276,7 +5276,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.0,
     0.0,
@@ -5403,7 +5403,7 @@
     0.0,
     0.0,
     0.0,
-    0.147442,
+    0.0,
     0.147442,
     0.0,
     0.0,
@@ -5415,7 +5415,7 @@
     0.0,
     0.0,
     -0.147442,
-    0.147442,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -5539,7 +5539,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.0,
     0.0,
@@ -5602,7 +5602,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 175.970000 JPY as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 175.970000 to 186.990000 JPY, trend falling, change -5.5803%.",
+   "content": "Currency report: 1 EUR = 175.970000 JPY as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 175.970000 to 186.990000 JPY, trend falling, change -5.5803%.",
    "meta": {
     "base": "EUR",
     "quote": "JPY",
@@ -5611,7 +5611,7 @@
     "high": 186.99,
     "trend": "falling",
     "pct_change": -5.580297,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -5676,7 +5676,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.0,
     0.0,
@@ -5803,7 +5803,7 @@
     0.0,
     0.0,
     0.0,
-    0.147442,
+    0.0,
     0.147442,
     0.0,
     0.0,
@@ -5815,7 +5815,7 @@
     0.0,
     0.0,
     -0.147442,
-    0.147442,
+    0.0,
     0.0,
     0.294884,
     0.0,
@@ -5939,7 +5939,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.0,
     -0.147442,
@@ -6002,7 +6002,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 1484.250000 KRW as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1484.250000 to 1674.310000 KRW, trend falling, change -11.3515%.",
+   "content": "Currency report: 1 EUR = 1484.250000 KRW as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1484.250000 to 1674.310000 KRW, trend falling, change -11.3515%.",
    "meta": {
     "base": "EUR",
     "quote": "KRW",
@@ -6011,7 +6011,7 @@
     "high": 1674.31,
     "trend": "falling",
     "pct_change": -11.351542,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -6076,7 +6076,7 @@
     0.0,
     -0.145865,
     0.0,
-    0.0,
+    0.145865,
     0.0,
     0.0,
     0.0,
@@ -6203,7 +6203,7 @@
     -0.145865,
     0.0,
     0.0,
-    0.145865,
+    0.0,
     0.145865,
     0.0,
     0.0,
@@ -6215,7 +6215,7 @@
     0.0,
     0.0,
     -0.145865,
-    0.145865,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -6339,7 +6339,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.145865,
     0.0,
     0.0,
     0.0,
@@ -6402,7 +6402,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 21.021500 MXN as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 19.640100 to 21.021500 MXN, trend rising, change +5.7329%.",
+   "content": "Currency report: 1 EUR = 21.021500 MXN as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 19.640100 to 21.021500 MXN, trend rising, change +5.7329%.",
    "meta": {
     "base": "EUR",
     "quote": "MXN",
@@ -6411,7 +6411,7 @@
     "high": 21.0215,
     "trend": "rising",
     "pct_change": 5.73291,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -6476,7 +6476,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.147442,
     0.0,
@@ -6603,7 +6603,7 @@
     0.0,
     0.0,
     0.0,
-    0.147442,
+    0.0,
     0.147442,
     0.0,
     0.0,
@@ -6615,7 +6615,7 @@
     0.0,
     0.0,
     -0.147442,
-    0.147442,
+    0.0,
     0.0,
     -0.147442,
     0.0,
@@ -6739,7 +6739,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.0,
     0.0,
@@ -6802,7 +6802,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 4.575600 MYR as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 4.566300 to 4.742400 MYR, trend falling, change -1.6634%.",
+   "content": "Currency report: 1 EUR = 4.575600 MYR as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 4.566300 to 4.742400 MYR, trend falling, change -1.6634%.",
    "meta": {
     "base": "EUR",
     "quote": "MYR",
@@ -6811,7 +6811,7 @@
     "high": 4.7424,
     "trend": "falling",
     "pct_change": -1.663443,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -6876,7 +6876,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -7003,7 +7003,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -7015,7 +7015,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -7139,7 +7139,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -7202,7 +7202,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 10.488000 NOK as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 10.488000 to 11.005500 NOK, trend falling, change -4.5200%.",
+   "content": "Currency report: 1 EUR = 10.488000 NOK as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 10.488000 to 11.005500 NOK, trend falling, change -4.5200%.",
    "meta": {
     "base": "EUR",
     "quote": "NOK",
@@ -7211,7 +7211,7 @@
     "high": 11.0055,
     "trend": "falling",
     "pct_change": -4.520005,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -7276,7 +7276,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.144338,
     0.0,
     0.0,
     0.0,
@@ -7403,7 +7403,7 @@
     0.0,
     0.0,
     0.0,
-    0.144338,
+    0.0,
     0.144338,
     0.0,
     0.0,
@@ -7415,7 +7415,7 @@
     0.0,
     0.0,
     -0.144338,
-    0.144338,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -7539,7 +7539,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.144338,
     0.0,
     0.0,
     0.0,
@@ -7602,7 +7602,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 1.972400 NZD as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.954100 to 2.012100 NZD, trend rising, change +0.3102%.",
+   "content": "Currency report: 1 EUR = 1.972400 NZD as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.954100 to 2.012100 NZD, trend rising, change +0.3102%.",
    "meta": {
     "base": "EUR",
     "quote": "NZD",
@@ -7611,7 +7611,7 @@
     "high": 2.0121,
     "trend": "rising",
     "pct_change": 0.310227,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -7676,7 +7676,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -7803,7 +7803,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -7815,7 +7815,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -7939,7 +7939,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -8002,7 +8002,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 71.162000 PHP as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 69.878000 to 72.815000 PHP, trend rising, change +1.2579%.",
+   "content": "Currency report: 1 EUR = 71.162000 PHP as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 69.878000 to 72.815000 PHP, trend rising, change +1.2579%.",
    "meta": {
     "base": "EUR",
     "quote": "PHP",
@@ -8011,7 +8011,7 @@
     "high": 72.815,
     "trend": "rising",
     "pct_change": 1.257862,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -8076,7 +8076,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.154303,
     0.0,
     0.0,
     0.0,
@@ -8203,7 +8203,7 @@
     0.0,
     0.0,
     0.0,
-    0.154303,
+    0.0,
     0.154303,
     0.0,
     0.0,
@@ -8215,7 +8215,7 @@
     0.0,
     0.0,
     -0.154303,
-    0.154303,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -8339,7 +8339,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.154303,
     0.0,
     0.0,
     0.0,
@@ -8402,7 +8402,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 4.369500 PLN as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 4.295500 to 4.385000 PLN, trend rising, change +1.0990%.",
+   "content": "Currency report: 1 EUR = 4.369500 PLN as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 4.295500 to 4.385000 PLN, trend rising, change +1.0990%.",
    "meta": {
     "base": "EUR",
     "quote": "PLN",
@@ -8411,7 +8411,7 @@
     "high": 4.385,
     "trend": "rising",
     "pct_change": 1.099028,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -8476,7 +8476,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -8603,7 +8603,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -8615,7 +8615,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -8739,7 +8739,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -8802,7 +8802,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 5.345000 RON as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 5.231900 to 5.352800 RON, trend rising, change +2.1598%.",
+   "content": "Currency report: 1 EUR = 5.345000 RON as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 5.231900 to 5.352800 RON, trend rising, change +2.1598%.",
    "meta": {
     "base": "EUR",
     "quote": "RON",
@@ -8811,7 +8811,7 @@
     "high": 5.3528,
     "trend": "rising",
     "pct_change": 2.159786,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -8876,7 +8876,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -9003,7 +9003,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -9015,7 +9015,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -9139,7 +9139,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -9202,7 +9202,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 11.112000 SEK as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 10.924000 to 11.331000 SEK, trend rising, change +0.6112%.",
+   "content": "Currency report: 1 EUR = 11.112000 SEK as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 10.924000 to 11.331000 SEK, trend rising, change +0.6112%.",
    "meta": {
     "base": "EUR",
     "quote": "SEK",
@@ -9211,7 +9211,7 @@
     "high": 11.331,
     "trend": "rising",
     "pct_change": 0.611164,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -9276,7 +9276,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.0,
     0.0,
@@ -9403,7 +9403,7 @@
     0.0,
     0.0,
     0.0,
-    0.147442,
+    0.0,
     0.147442,
     0.0,
     0.0,
@@ -9415,7 +9415,7 @@
     0.0,
     0.0,
     -0.147442,
-    0.147442,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -9539,7 +9539,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.147442,
     0.0,
     0.0,
     0.0,
@@ -9602,7 +9602,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 1.431500 SGD as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.431100 to 1.486000 SGD, trend falling, change -2.5925%.",
+   "content": "Currency report: 1 EUR = 1.431500 SGD as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.431100 to 1.486000 SGD, trend falling, change -2.5925%.",
    "meta": {
     "base": "EUR",
     "quote": "SGD",
@@ -9611,7 +9611,7 @@
     "high": 1.486,
     "trend": "falling",
     "pct_change": -2.592542,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -9676,7 +9676,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -9803,7 +9803,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -9815,7 +9815,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -9939,7 +9939,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -10002,7 +10002,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 37.811000 THB as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 37.574000 to 38.554000 THB, trend falling, change -1.1322%.",
+   "content": "Currency report: 1 EUR = 37.811000 THB as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 37.574000 to 38.554000 THB, trend falling, change -1.1322%.",
    "meta": {
     "base": "EUR",
     "quote": "THB",
@@ -10011,7 +10011,7 @@
     "high": 38.554,
     "trend": "falling",
     "pct_change": -1.132204,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -10076,7 +10076,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.154303,
     0.0,
     0.0,
     0.0,
@@ -10203,7 +10203,7 @@
     0.0,
     0.0,
     0.0,
-    0.154303,
+    0.0,
     0.308607,
     0.0,
     0.0,
@@ -10215,7 +10215,7 @@
     0.0,
     0.0,
     -0.154303,
-    0.154303,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -10339,7 +10339,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.154303,
     0.0,
     0.0,
     0.0,
@@ -10402,7 +10402,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 55.607900 TRY as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 53.856400 to 56.485700 TRY, trend rising, change +3.1059%.",
+   "content": "Currency report: 1 EUR = 55.607900 TRY as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 53.856400 to 56.485700 TRY, trend rising, change +3.1059%.",
    "meta": {
     "base": "EUR",
     "quote": "TRY",
@@ -10411,7 +10411,7 @@
     "high": 56.4857,
     "trend": "rising",
     "pct_change": 3.105902,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -10476,7 +10476,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.0,
     0.0,
@@ -10603,7 +10603,7 @@
     0.0,
     0.0,
     0.0,
-    0.150756,
+    0.0,
     0.150756,
     0.0,
     0.0,
@@ -10615,7 +10615,7 @@
     0.0,
     0.0,
     -0.150756,
-    0.150756,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -10739,7 +10739,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.0,
     0.0,
@@ -10802,7 +10802,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 1.120500 USD as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.117700 to 1.169900 USD, trend falling, change -1.6156%.",
+   "content": "Currency report: 1 EUR = 1.120500 USD as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 1.117700 to 1.169900 USD, trend falling, change -1.6156%.",
    "meta": {
     "base": "EUR",
     "quote": "USD",
@@ -10811,7 +10811,7 @@
     "high": 1.1699,
     "trend": "falling",
     "pct_change": -1.615594,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -10876,7 +10876,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -11003,7 +11003,7 @@
     0.0,
     0.0,
     0.0,
-    0.160128,
+    0.0,
     0.160128,
     0.0,
     0.0,
@@ -11015,7 +11015,7 @@
     0.0,
     0.0,
     -0.160128,
-    0.160128,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -11139,7 +11139,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.160128,
     0.0,
     0.0,
     0.0,
@@ -11202,7 +11202,7 @@
    ]
   },
   {
-   "content": "Currency report: 1 EUR = 18.505800 ZAR as of 2026-10-23 07:36 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 18.393000 to 19.079700 ZAR, trend falling, change -2.9403%.",
+   "content": "Currency report: 1 EUR = 18.505800 ZAR as of 2026-10-23 13:29 UTC (source ecb). Over the last 87 recorded observations (90d window) the rate ranged from 18.393000 to 19.079700 ZAR, trend falling, change -2.9403%.",
    "meta": {
     "base": "EUR",
     "quote": "ZAR",
@@ -11211,7 +11211,7 @@
     "high": 19.0797,
     "trend": "falling",
     "pct_change": -2.940251,
-    "timestamp": 1792740966,
+    "timestamp": 1792762190,
     "source": "ecb"
    },
    "embedding": [
@@ -11276,7 +11276,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.150756,
     0.0,
@@ -11403,7 +11403,7 @@
     0.0,
     0.0,
     0.0,
-    0.150756,
+    0.0,
     0.150756,
     0.0,
     0.0,
@@ -11415,7 +11415,7 @@
     0.0,
     0.0,
     -0.150756,
-    0.150756,
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -11539,7 +11539,7 @@
     0.0,
     -0.301511,
     0.0,
-    0.0,
+    0.150756,
     0.0,
     0.0,
     0.0,
